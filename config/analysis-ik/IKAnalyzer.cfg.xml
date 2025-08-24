@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+  <comment>IK Analyzer 繁體中文配置</comment>
+  <entry key="ext_dict">traditional_chinese_dict.txt</entry>
+  <entry key="ext_stopwords">stopwords.txt</entry>
+  <entry key="remote_ext_dict"></entry>
+  <entry key="remote_ext_stopwords"></entry>
+</properties>
+

@@ -2,9 +2,8 @@ services:
 # ElasticSearch settings
   elasticsearch:
     build: .
-    # image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: elasticsearch
-    hostname: elasticsearch
+    container_name: es01
+    hostname: es01
     environment:
     # cluster settings
       - node.name=es01
@@ -27,7 +26,9 @@ services:
     volumes:
       - es_data:/usr/share/elasticsearch/data
       - es_logs:/usr/share/elasticsearch/logs
-      - es_plugins:/usr/share/elasticsearch/plugins
+      # - es_plugins:/usr/share/elasticsearch/plugins
+      # - ./config/analysis-ik:/usr/share/elasticsearch/config/analysis-ik:ro
+      - ./data/import:/data/import:rw
 # Linux 實機長需要; Mac/Win 通常不用更動
     ulimits:
       memlock:
@@ -72,7 +73,7 @@ services:
       - I18N_DEFAULTLOCALE=zh-TW
       - KIBANA_DEFAULTAPPID=home
     ports:
-    - "5601:5601"      #kibana Web
+      - "5601:5601"      #kibana Web
     volumes:
       - kibana_data:/usr/share/kibana/data
 
@@ -87,6 +88,31 @@ services:
     restart: unless-stopped
     networks:
       - elastic
+
+
+# 新增：自動檔案處理服務
+  auto-importer:
+    image: python:3.11-slim
+    container_name: auto-importer
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTIC_USERNAME=elastic
+      - ELASTIC_PASSWORD=admin@12345
+    volumes:
+      - ./data/import:/data/import:rw
+      - ./scripts:/scripts:ro
+    working_dir: /scripts
+    command: >
+      bash -c "
+        pip install --no-cache-dir opencc-python-reimplemented requests pandas &&
+        python auto_importer.py
+      "
+    restart: unless-stopped
+    networks:
+      - elastic
+
   
 volumes:
   es_data:
@@ -101,12 +127,12 @@ volumes:
       type: none
       o: bind
       device: ./logs/elasticsearch
-  es_plugins:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./plugins/elasticsearch
+  # es_plugins:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     o: bind
+  #     device: ./plugins/elasticsearch
   kibana_data:
     driver: local
     driver_opts:
