@@ -34,10 +34,10 @@ logger = logging.getLogger(__name__)
 
 class DatabaseImporter:
     def __init__(self, 
-                 es_url="http://elasticsearch:9200", 
-                 username="elastic", 
-                 password="admin@12345",
-                 watch_dir="/data/import"):
+                es_url="http://elasticsearch:9200", 
+                username="elastic", 
+                password="admin@12345",
+                watch_dir="/data/import"):
         
         self.es_url = es_url
         self.auth = HTTPBasicAuth(username, password)
@@ -87,7 +87,7 @@ class DatabaseImporter:
         for i in range(max_retries):
             try:
                 response = requests.get(f"{self.es_url}/_cluster/health", 
-                                      auth=self.auth, timeout=5)
+                                    auth=self.auth, timeout=5)
                 if response.status_code == 200:
                     logger.info("Elasticsearch 服務已就緒")
                     return True
