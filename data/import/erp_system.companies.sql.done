@@ -1,0 +1,12 @@
+insert into erp_system.companies(company_id,company_name,company_short,company_tax_id,company_address,company_phone,company_fax,company_email,company_type,created_time,created_clerk_id,created_clerk_nm,updated_time,updated_clerk_id,updated_clerk_nm,del) values 
+ (N'C000001',N'大榮科技股份有限公司',N'大榮科技',N'28495731',N'新北市新店區北新路三段207號5樓',N'02-29123456',N'02-29123457',N'contact@darong.com.tw',N'2',TIMESTAMP '2023-05-15 09:30:45.000',N'EMP001',N'王小明',null,null,null,N'0')
+,(N'C000002',N'鴻達食品有限公司',N'鴻達',N'12567834',N'台南市安平區建平路188號',N'06-2345678',N'06-2345679',N'service@hongda.com.tw',N'1',TIMESTAMP '2023-06-20 14:20:33.000',N'EMP002',N'張美玲',TIMESTAMP '2024-01-10 11:25:40.000',N'EMP002',N'張美玲',N'0')
+,(N'C000003',N'台灣智慧電子工業股份有限公司',N'智慧電子',N'54781239',N'台中市西屯區工業區一路10號',N'04-23678945',N'04-23678946',N'info@smartele.com.tw',N'3',TIMESTAMP '2023-08-05 10:15:22.000',N'EMP001',N'王小明',TIMESTAMP '2024-03-12 15:40:25.000',N'EMP003',N'劉俊傑',N'0')
+,(N'C000004',N'永誠醫療器材有限公司',N'永誠醫療',N'89234567',N'高雄市鳳山區光復路102號',N'07-7654321',N'07-7654322',N'service@yongcheng.com.tw',N'2',TIMESTAMP '2023-09-18 11:40:15.000',N'EMP003',N'劉俊傑',null,null,null,N'0')
+,(N'C000005',N'嘉興包裝材料行',N'嘉興',N'43215678',N'彰化縣員林市中山路156號',N'04-8765432',N'04-8765433',N'jiaxing@packing.com.tw',N'1',TIMESTAMP '2023-10-25 13:20:45.000',N'EMP002',N'張美玲',null,null,null,N'0')
+,(N'C000006',N'大華印刷股份有限公司',N'大華印刷',N'76543219',N'台北市內湖區行愛路77號',N'02-27896543',N'02-27896544',N'service@dahua.com.tw',N'2',TIMESTAMP '2023-11-10 09:10:25.000',N'EMP001',N'王小明',TIMESTAMP '2024-02-15 14:20:30.000',N'EMP001',N'王小明',N'0')
+,(N'C000007',N'世紀物流有限公司',N'世紀物流',N'19283746',N'桃園市大園區航站南路15號',N'03-3456789',N'03-3456780',N'info@century-logistics.com.tw',N'3',TIMESTAMP '2024-01-05 10:30:15.000',N'EMP003',N'劉俊傑',null,null,null,N'0')
+,(N'C000008',N'環球化工原料有限公司',N'環球化工',N'65432198',N'高雄市小港區沿海路256號',N'07-8765432',N'07-8765433',N'contact@globalchem.com.tw',N'1',TIMESTAMP '2024-02-20 11:20:35.000',N'EMP002',N'張美玲',null,null,null,N'0')
+,(N'C000009',N'台中榮民總醫院',N'台中榮總',N'87654321',N'台中市西屯區臺灣大道四段1650號',N'04-23592525',N'04-23593551',N'service@vghtc.gov.tw',N'2',TIMESTAMP '2024-03-10 14:15:20.000',N'EMP001',N'王小明',TIMESTAMP '2025-05-14 17:47:38.000',N'EMP002',N'流與同',N'0')
+,(N'C000010',N'測試',N'測試',N'測試',N'測試',N'測試',N'測試',N'測試',N'2',TIMESTAMP '2024-04-01 09:45:30.000',N'EMP003',N'劉俊傑',null,null,null,N'0')
+;

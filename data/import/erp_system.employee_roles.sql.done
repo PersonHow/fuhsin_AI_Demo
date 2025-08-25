@@ -1,0 +1,18 @@
+insert into erp_system.employee_roles(id,employee_id,employee_name,role_id,role_name,expires_time,created_time,created_clerk_id,created_clerk_nm,updated_time,updated_clerk_id,updated_clerk_nm,del) values 
+ (1,N'EMP00001',N'陳怡君',6,N'人資主管',null,TIMESTAMP '2023-06-01 09:00:00.000',N'EMP00999',N'系統管理員',TIMESTAMP '2025-07-16 15:29:24.000',N'EMP002',N'流與同',N'0')
+,(2,N'EMP00002',N'李威廷',5,N'一般員工',null,TIMESTAMP '2022-03-15 09:10:00.000',N'EMP00001',N'陳怡君',TIMESTAMP '2025-07-16 15:53:12.000',N'EMP002',N'流與同',N'0')
+,(3,N'EMP00003',N'John Smith',2,N'系統管理員',null,TIMESTAMP '2020-10-05 08:45:00.000',N'EMP00001',N'陳怡君',TIMESTAMP '2025-07-16 15:56:13.000',N'EMP002',N'流與同',N'0')
+,(4,N'EMP00004',N'王思涵',8,N'會計人員',null,TIMESTAMP '2019-01-10 09:00:00.000',N'EMP00999',N'系統管理員',TIMESTAMP '2025-07-16 16:42:07.000',N'EMP00003',N'John Smith',N'0')
+,(5,N'EMP00005',N'林育軒',7,N'實習生',null,TIMESTAMP '2024-07-01 09:15:00.000',N'EMP00001',N'陳怡君',TIMESTAMP '2025-07-16 16:43:28.000',N'EMP00001',N'陳怡君',N'0')
+,(6,N'EMP00006',N'吳美玲',3,N'業務主管',null,TIMESTAMP '2025-07-01 08:30:00.000',N'EMP00001',N'陳怡君',null,null,null,N'0')
+,(7,N'EMP00007',N'張嘉玲',4,N'採購人員',null,TIMESTAMP '2025-07-01 09:00:00.000',N'EMP00001',N'陳怡君',null,null,null,N'0')
+,(8,N'EMP00000',N'系統管理員',1,N'超級管理員',null,TIMESTAMP '2025-07-01 09:00:00.000',N'EMP00001',N'陳怡君',null,null,null,N'0')
+,(9,N'EMP00007',N'張嘉玲',3,N'業務主管',null,TIMESTAMP '2025-07-01 09:00:00.000',N'EMP00001',N'陳怡君',null,null,null,N'0')
+,(15,N'EMP00007',N'張嘉玲',5,N'一般員工',null,TIMESTAMP '2025-07-29 23:34:23.000',N'EMP00000',N'系統管理員',TIMESTAMP '2025-07-30 16:54:27.000',N'EMP00000',N'系統管理員',N'1')
+,(16,N'EMP00007',N'張嘉玲',6,N'人資主管',null,TIMESTAMP '2025-07-29 23:36:03.000',N'EMP00000',N'系統管理員',TIMESTAMP '2025-07-30 16:54:38.000',N'EMP00000',N'系統管理員',N'1')
+,(17,N'EMP00007',N'張嘉玲',7,N'實習生',null,TIMESTAMP '2025-07-29 23:36:44.000',N'EMP00000',N'系統管理員',null,null,null,N'1')
+,(18,N'EMP00007',N'張嘉玲',7,N'實習生',null,TIMESTAMP '2025-07-30 10:34:50.000',N'EMP00000',N'系統管理員',TIMESTAMP '2025-07-30 16:46:20.000',N'EMP00000',N'系統管理員',N'1')
+,(19,N'EMP00007',N'張嘉玲',7,N'實習生',null,TIMESTAMP '2025-07-30 16:53:58.000',N'EMP00000',N'系統管理員',TIMESTAMP '2025-08-08 16:05:32.000',N'EMP00000',N'系統管理員',N'1')
+,(20,N'EMP00007',N'張嘉玲',8,N'會計人員',null,TIMESTAMP '2025-07-30 17:36:01.000',N'EMP00000',N'系統管理員',TIMESTAMP '2025-07-30 17:36:24.000',N'EMP00000',N'系統管理員',N'1')
+,(21,N'EMP00007',N'張嘉玲',5,N'一般員工',null,TIMESTAMP '2025-08-08 16:08:43.000',N'EMP00000',N'系統管理員',null,null,null,N'0')
+;

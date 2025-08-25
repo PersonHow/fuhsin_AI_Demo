@@ -1,0 +1,15 @@
+insert into erp_system.serial_number_seq(seq_key,name,prefix,next_val,reset_type,last_reset_date) values 
+ (N'COMPANY',N'公司模組',N'C-',11,N'NONE',null)
+,(N'DELIVERYORDER',N'出貨單模組',N'DOT-',3,N'DAILY',DATE '2025-07-14')
+,(N'EMPLOYEE',N'員工模組',N'EMP-',6,N'NONE',null)
+,(N'MATERIAL',N'材料模組',N'M-',2,N'DAILY',DATE '2025-07-28')
+,(N'ORDER',N'訂單模組',N'ORDT-',2,N'DAILY',DATE '2025-07-29')
+,(N'PERMISSION',N'權限模組',N'PERM-',40,N'NONE',null)
+,(N'PURCHASEORDER',N'採購單模組',N'POT-',5,N'DAILY',DATE '2025-07-29')
+,(N'QUOTATION',N'報價單模組',N'QT-',2,N'DAILY',DATE '2025-07-29')
+,(N'RECEIVING',N'進貨單模組',N'RT-',2,N'DAILY',DATE '2025-07-29')
+,(N'REMATERIAL',N'再入庫暫存模組',N'RM-',3,N'DAILY',DATE '2025-07-13')
+,(N'SCRAP',N'廢料模組',N'SC-',1,N'DAILY',null)
+,(N'SCRAPTEMP',N'廢料暫存模組',N'SCT-',2,N'DAILY',DATE '2025-07-13')
+,(N'WORKORDER',N'派工單模組',N'WOT-',3,N'DAILY',DATE '2025-07-13')
+;
