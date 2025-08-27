@@ -163,6 +163,9 @@ def ensure_structured_index_template():
                     "analyzer": {
                         "ik_analyzer": {
                             "type": "ik_max_word"
+                        },
+                        "ik_search": {
+                            "type": "ik_smart"
                         }
                     }
                 }
@@ -174,8 +177,8 @@ def ensure_structured_index_template():
                             "match": "field_*",
                             "mapping": {
                                 "type": "text",
-                                "analyzer": "ik_max_word",
-                                "search_analyzer": "ik_smart",
+                                "analyzer": "ik_analyzer",
+                                "search_analyzer": "ik_search",
                                 "fields": {
                                     "keyword": {"type": "keyword", "ignore_above": 256}
                                 }
@@ -193,15 +196,15 @@ def ensure_structured_index_template():
                             "total_records": {"type": "integer"}
                         }
                     },
-                    "raw_sql": {
-                        "type": "text", 
-                        "analyzer": "ik_max_word",
-                        "search_analyzer": "ik_smart"
-                    },
                     "searchable_content": {
                         "type": "text",
-                        "analyzer": "ik_max_word", 
-                        "search_analyzer": "ik_smart"
+                        "analyzer": "ik_analyzer", 
+                        "search_analyzer": "ik_search"
+                    },
+                    "all_content": {
+                        "type": "text",
+                        "analyzer": "ik_analyzer",
+                        "search_analyzer": "ik_search"
                     }
                 }
             }
@@ -212,9 +215,9 @@ def ensure_structured_index_template():
         r = session.put(f"{ES_URL}/_index_template/erp-template", 
                        data=json.dumps(template), timeout=30)
         r.raise_for_status()
-        log("✅ 結構化索引模板已建立: erp-template")
+        log("索引模板已建立: erp-template")
     except requests.exceptions.HTTPError as e:
-        log(f"❌ 建立索引模板失敗: {e}")
+        log(f"建立索引模板失敗: {e}")
         log(f"回應內容: {e.response.text}")
         # 嘗試使用簡化版模板
         simple_template = {
@@ -239,10 +242,10 @@ def ensure_structured_index_template():
             r2 = session.put(f"{ES_URL}/_index_template/erp-simple-template", 
                            data=json.dumps(simple_template), timeout=30)
             r2.raise_for_status()
-            log("✅ 簡化索引模板已建立: erp-simple-template")
+            log("簡化索引模板已建立: erp-simple-template")
         except Exception as e2:
-            log(f"❌ 簡化模板也失敗: {e2}")
-            log("⚠️ 將使用默認映射繼續執行")
+            log(f"簡化模板也失敗: {e2}")
+            log("將使用默認映射繼續執行")
 
 def create_structured_documents(filename, parsed_data, raw_sql):
     """將解析後的數據轉換為結構化文檔"""
@@ -264,8 +267,8 @@ def create_structured_documents(filename, parsed_data, raw_sql):
                 "table_name": table_name,
                 "record_index": record_idx,
                 "total_records": len(records)
-            },
-            "raw_sql": raw_sql[:1000] + "..." if len(raw_sql) > 1000 else raw_sql
+            }
+            # 移除 raw_sql 字段以保持結果清爽
         }
         
         # 將每個欄位的值添加到文檔中
@@ -295,6 +298,13 @@ def create_structured_documents(filename, parsed_data, raw_sql):
         
         # 添加便於搜索的綜合內容字段
         doc["searchable_content"] = " ".join(set(searchable_content))
+        
+        # 新增：全內容搜索字段（包含所有文本內容）
+        all_text_content = []
+        for key, value in doc.items():
+            if key.startswith('field_') and isinstance(value, str):
+                all_text_content.append(str(value))
+        doc["all_content"] = " ".join(set(all_text_content + searchable_content))
         
         # 生成文檔 ID
         doc_id = hashlib.sha256(f"{filename}::{table_name}::{record_idx}".encode()).hexdigest()
