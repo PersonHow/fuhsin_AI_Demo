@@ -2223,3 +2223,13 @@
 [2025-08-27T08:39:23.134+0000][121][info ][safepoint   ] Safepoint "Cleanup", Time since last: 39564168893 ns, Reaching safepoint: 56875 ns, Cleanup: 56250 ns, At safepoint: 15125 ns, Total: 128250 ns
 [2025-08-27T08:39:33.180+0000][121][info ][safepoint   ] Safepoint "Cleanup", Time since last: 10045678463 ns, Reaching safepoint: 13000 ns, Cleanup: 12958 ns, At safepoint: 9709 ns, Total: 35667 ns
 [2025-08-27T08:39:39.687+0000][121][info ][safepoint   ] Safepoint "Cleanup", Time since last: 6507103961 ns, Reaching safepoint: 75292 ns, Cleanup: 60167 ns, At safepoint: 19333 ns, Total: 154792 ns
+[2025-08-27T08:39:48.697+0000][121][info ][safepoint   ] Safepoint "Cleanup", Time since last: 9010314629 ns, Reaching safepoint: 14834 ns, Cleanup: 19750 ns, At safepoint: 7333 ns, Total: 41917 ns
+[2025-08-27T08:39:50.802+0000][121][info ][safepoint   ] Safepoint "Cleanup", Time since last: 2102977292 ns, Reaching safepoint: 4334 ns, Cleanup: 52208 ns, At safepoint: 9917 ns, Total: 66459 ns
+[2025-08-27T08:39:52.250+0000][121][info ][safepoint   ] Safepoint "Cleanup", Time since last: 1447383209 ns, Reaching safepoint: 80083 ns, Cleanup: 31250 ns, At safepoint: 17708 ns, Total: 129041 ns
+[2025-08-27T08:40:00.957+0000][121][info ][safepoint   ] Safepoint "Cleanup", Time since last: 8707104796 ns, Reaching safepoint: 7208 ns, Cleanup: 43875 ns, At safepoint: 2209 ns, Total: 53292 ns
+[2025-08-27T08:40:02.434+0000][121][info ][safepoint   ] Safepoint "Cleanup", Time since last: 1476904500 ns, Reaching safepoint: 11875 ns, Cleanup: 166084 ns, At safepoint: 15708 ns, Total: 193667 ns
+[2025-08-27T08:40:03.315+0000][121][info ][gc,heap,exit] Heap
+[2025-08-27T08:40:03.315+0000][121][info ][gc,heap,exit]  garbage-first heap   total reserved 1048576K, committed 1048576K, used 499297K [0x00000000c0000000, 0x0000000100000000)
+[2025-08-27T08:40:03.316+0000][121][info ][gc,heap,exit]   region size 4096K, 84 young (344064K), 2 survivors (8192K)
+[2025-08-27T08:40:03.316+0000][121][info ][gc,heap,exit]  Metaspace       used 161763K, committed 166080K, reserved 1245184K
+[2025-08-27T08:40:03.316+0000][121][info ][gc,heap,exit]   class space    used 21917K, committed 24192K, reserved 1048576K
