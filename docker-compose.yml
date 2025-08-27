@@ -107,7 +107,7 @@ services:
     command: >
       bash -c "
         pip install --no-cache-dir opencc-python-reimplemented requests pandas &&
-        python auto_importer.py
+        python sql_smart_importer.py
       "
     restart: unless-stopped
     networks:

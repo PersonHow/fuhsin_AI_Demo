@@ -30,16 +30,16 @@ def ensure_index_template():
           "analysis": {}
         },
         "mappings": {
-          "properties": {
-            "@timestamp":            {"type": "date"},
-            "filename":              {"type": "keyword"},
-            "statement_idx":         {"type": "integer"},
-            "content":               {"type": "text", "analyzer":"ik_max_word", "search_analyzer":"ik_smart"},
-            "content_traditional":   {"type": "text", "analyzer":"ik_max_word", "search_analyzer":"ik_smart"},
-            "content_simplified":    {"type": "text", "analyzer":"ik_max_word", "search_analyzer":"ik_smart"}
-          }
+            "properties": {
+                "@timestamp":            { "type" : "date" },
+                "filename":              { "type" : "keyword" },
+                "statement_idx":         { "type" : "integer" },
+                "content":               { "type" : "text", "analyzer" : "ik_max_word", "search_analyzer" : "ik_smart" },
+                "content_traditional":   { "type" : "text", "analyzer" : "ik_max_word", "search_analyzer" : "ik_smart" },
+                "content_simplified":    { "type" : "text", "analyzer" : "ik_max_word", "search_analyzer" : "ik_smart" }
+            }
+            }
         }
-      }
     }
     r = session.put(f"{ES_URL}/_index_template/sql-template", data=json.dumps(tpl), timeout=30)
     r.raise_for_status()
@@ -79,12 +79,12 @@ def to_docs(filename: str, statements: list[str]):
         simp = cc_t2s.convert(raw)      # 以及簡體
         _id  = hashlib.sha1(f"{filename}::{hashlib.sha1(raw.encode('utf-8')).hexdigest()}".encode("utf-8")).hexdigest()
         doc = {
-            "@timestamp": datetime.now(timezone.utc).isoformat(),
-            "filename": filename,
-            "statement_idx": i,
-            "content": raw,
-            "content_traditional": trad,
-            "content_simplified":  simp
+            "@timestamp" : datetime.now(timezone.utc).isoformat(),
+            "filename" : filename,
+            "statement_idx" : i,
+            "content" : raw,
+            "content_traditional" : trad,
+            "content_simplified" :  simp
         }
         idx_docs.append((_id, doc))
     return idx_docs
