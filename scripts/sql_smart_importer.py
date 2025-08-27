@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 SQL 智能解析器 - 將 SQL INSERT 語句解析成結構化數據
+替換原有的 auto_importer.py
 """
 import os, re, time, json, hashlib
 from datetime import datetime, timezone
@@ -167,6 +168,21 @@ def ensure_structured_index_template():
                 }
             },
             "mappings": {
+                "dynamic_templates": [
+                    {
+                        "field_strings": {
+                            "match": "field_*",
+                            "mapping": {
+                                "type": "text",
+                                "analyzer": "ik_max_word",
+                                "search_analyzer": "ik_smart",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                }
+                            }
+                        }
+                    }
+                ],
                 "properties": {
                     "@timestamp": {"type": "date"},
                     "metadata": {
@@ -177,20 +193,56 @@ def ensure_structured_index_template():
                             "total_records": {"type": "integer"}
                         }
                     },
-                    "raw_sql": {"type": "text", "analyzer": "ik_analyzer"},
-                    # 動態映射模板用於字段數據
-                    "field_*": {"type": "text", "analyzer": "ik_analyzer"},
-                    "field_*.traditional": {"type": "text", "analyzer": "ik_analyzer"},
-                    "field_*.simplified": {"type": "text", "analyzer": "ik_analyzer"}
+                    "raw_sql": {
+                        "type": "text", 
+                        "analyzer": "ik_max_word",
+                        "search_analyzer": "ik_smart"
+                    },
+                    "searchable_content": {
+                        "type": "text",
+                        "analyzer": "ik_max_word", 
+                        "search_analyzer": "ik_smart"
+                    }
                 }
             }
         }
     }
     
-    r = session.put(f"{ES_URL}/_index_template/erp-template", 
-                   data=json.dumps(template), timeout=30)
-    r.raise_for_status()
-    log("✅ 結構化索引模板已建立: erp-template")
+    try:
+        r = session.put(f"{ES_URL}/_index_template/erp-template", 
+                       data=json.dumps(template), timeout=30)
+        r.raise_for_status()
+        log("✅ 結構化索引模板已建立: erp-template")
+    except requests.exceptions.HTTPError as e:
+        log(f"❌ 建立索引模板失敗: {e}")
+        log(f"回應內容: {e.response.text}")
+        # 嘗試使用簡化版模板
+        simple_template = {
+            "index_patterns": ["erp-*"],
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "@timestamp": {"type": "date"},
+                        "metadata": {
+                            "properties": {
+                                "source_file": {"type": "keyword"},
+                                "table_name": {"type": "keyword"},
+                                "record_index": {"type": "integer"},
+                                "total_records": {"type": "integer"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        try:
+            r2 = session.put(f"{ES_URL}/_index_template/erp-simple-template", 
+                           data=json.dumps(simple_template), timeout=30)
+            r2.raise_for_status()
+            log("✅ 簡化索引模板已建立: erp-simple-template")
+        except Exception as e2:
+            log(f"❌ 簡化模板也失敗: {e2}")
+            log("⚠️ 將使用默認映射繼續執行")
 
 def create_structured_documents(filename, parsed_data, raw_sql):
     """將解析後的數據轉換為結構化文檔"""
@@ -235,13 +287,8 @@ def create_structured_documents(filename, parsed_data, raw_sql):
                     if isinstance(value, str) and len(value) > 0:
                         # 轉繁體
                         traditional = cc_s2t.convert(str(value))
-                        if traditional != str(value):
-                            doc[f"{field_key}.traditional"] = traditional
-                        
-                        # 轉簡體
+                        # 轉簡體  
                         simplified = cc_t2s.convert(str(value))
-                        if simplified != str(value):
-                            doc[f"{field_key}.simplified"] = simplified
                         
                         # 加入可搜索內容
                         searchable_content.extend([str(value), traditional, simplified])
