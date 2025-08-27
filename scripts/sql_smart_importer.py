@@ -213,7 +213,7 @@ def ensure_structured_index_template():
     
     try:
         r = session.put(f"{ES_URL}/_index_template/erp-template", 
-                       data=json.dumps(template), timeout=30)
+                        data=json.dumps(template), timeout=30)
         r.raise_for_status()
         log("索引模板已建立: erp-template")
     except requests.exceptions.HTTPError as e:
