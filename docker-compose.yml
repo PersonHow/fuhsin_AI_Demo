@@ -91,27 +91,104 @@ services:
 
 
 # 新增：自動檔案處理服務
-  auto-importer:
+  # 升級版資料轉換器
+  data-transformer:
     image: python:3.11-slim
-    container_name: auto-importer
+    container_name: data-transformer
     depends_on:
       - elasticsearch
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - ELASTIC_USERNAME=elastic
-      - ELASTIC_PASSWORD=admin@12345
+      - ELASTICSEARCH_USER=elastic
+      - ELASTICSEARCH_PASSWORD=admin@12345
+      - PYTHONPATH=/app
     volumes:
       - ./data/import:/data/import:rw
-      - ./scripts:/scripts:ro
-    working_dir: /scripts
+      - ./scripts:/app:rw
+      - ./data/state:/app/state:rw  # 狀態檔目錄
+    working_dir: /app
     command: >
       bash -c "
-        pip install --no-cache-dir opencc-python-reimplemented requests pandas &&
-        python sql_smart_importer.py
+        pip install --no-cache-dir opencc-python-reimplemented requests pandas pymysql psycopg2-binary &&
+        python unified_config.py --mode daemon --config /app/state/transformer_config.json
       "
     restart: unless-stopped
     networks:
       - elastic
+
+  # Hybrid Search API
+  search-api:
+    image: python:3.11-slim
+    container_name: search-api
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_USER=elastic
+      - ELASTICSEARCH_PASSWORD=admin@12345
+      - EMBEDDING_API_URL=  # 可選：向量化服務URL
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./scripts:/app:ro
+    working_dir: /app
+    command: >
+      bash -c "
+        pip install --no-cache-dir fastapi uvicorn aiohttp numpy &&
+        python hybrid_search_api.py
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - elastic
+
+  # 可選：向量化服務 (使用開源模型)
+  embedding-service:
+    image: python:3.11-slim
+    container_name: embedding-service
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./models:/models:ro  # 模型檔案目錄
+    command: >
+      bash -c "
+        pip install --no-cache-dir fastapi uvicorn sentence-transformers torch &&
+        python -c \"
+        from fastapi import FastAPI
+        from sentence_transformers import SentenceTransformer
+        import uvicorn
+        from pydantic import BaseModel
+
+        app = FastAPI()
+        # 使用中文優化的模型
+        model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+
+        class TextRequest(BaseModel):
+        text: str
+
+        @app.post('/embed')
+        async def embed_text(request: TextRequest):
+        embedding = model.encode(request.text).tolist()
+        return {'embedding': embedding}
+
+        @app.get('/health')
+        async def health():
+        return {'status': 'healthy'}
+
+        if __name__ == '__main__':
+        uvicorn.run(app, host='0.0.0.0', port=8001)
+            \"
+        "
+    restart: unless-stopped
+    networks:
+      - elastic
+    profiles:
+      - vector  # 使用 docker-compose --profile vector up 啟動
 
   
 volumes:
