@@ -1,0 +1,43 @@
+# 資料庫連線設定
+mysql:
+  host: ${MYSQL_HOST}
+  port: ${MYSQL_PORT}
+  user: ${MYSQL_USER}
+  password: ${MYSQL_PASSWORD}
+  database: ${MYSQL_DATABASE}
+  charset: utf8mb4
+  connection_pool:
+    size: 5
+    max_overflow: 10
+    timeout: 30
+
+# Elasticsearch 連線設定
+elasticsearch:
+  host: elasticsearch
+  port: 9200
+  user: elastic
+  password: ${ELASTIC_PASSWORD}
+  timeout: 30
+  max_retries: 3
+  
+# 同步設定
+sync:
+  # 同步間隔（秒）
+  interval: ${SYNC_INTERVAL}
+  
+  # 批次大小
+  batch_size: ${BATCH_SIZE}
+  
+  # 同步模式：full（全量）/ incremental（增量）
+  mode: incremental
+  
+  # 增量同步設定
+  incremental:
+    # 用於判斷更新的欄位
+    timestamp_fields:
+      - updated_at
+      - modified_time
+      - last_modified
+    
+    # 狀態儲存路徑
+    state_file: /app/logs/sync/sync_state.json
