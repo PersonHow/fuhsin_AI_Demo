@@ -12,7 +12,7 @@ services:
 
     # security settings
       - xpack.security.enabled=true
-      - ELASTIC_PASSWORD=admin@12345
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-admin@12345}
       
     # memory settings
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
@@ -39,7 +39,7 @@ services:
         hard: 262144
     
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test: ["CMD-SHELL", "curl -u elastic:${ELASTIC_PASSWORD:-admin@12345} -fsS http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -62,6 +62,9 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=kibana123
+      # - ELASTICSEARCH_USERNAME=${KIBANA_USER:-elastic}
+      # - ELASTICSEARCH_PASSWORD=${KIBANA_PASS:-admin@12345}
+      
 
     # kibana server settings
       - SERVER_NAME=kibana
@@ -111,7 +114,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - elastic-network
+      - elastic
 
   # 階段一：MySQL 同步服務
   mysql-sync:
@@ -137,15 +140,8 @@ services:
     working_dir: /app
     command: >
       bash -c "
-        pip install --no-cache-dir 
-          pymysql 
-          sqlalchemy 
-          pandas 
-          pyyaml 
-          requests 
-          opencc-python-reimplemented 
-          python-dateutil &&
-        python scripts/phase1/main.py --mode ${SYNC_MODE:-sync}
+        pip install --no-cache-dir -r /app/config/requirements-sync.txt &&
+        python scripts/phase1/main.py --mode init
       "
     restart: unless-stopped
     networks:
@@ -154,11 +150,11 @@ services:
   
 volumes:
   es_data:
-    # driver: local
-    # driver_opts:
-    #   type: none
-    #   o: bind
-    #   device: ./data/elasticsearch
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/elasticsearch
   es_logs:
     driver: local
     driver_opts:
