@@ -141,7 +141,7 @@ services:
     command: >
       bash -c "
         pip install --no-cache-dir -r /app/config/requirements-sync.txt &&
-        python scripts/phase1/main.py --mode init
+        python scripts/phase1/main.py --mode ${SYNC_MODE:-sync}
       "
     restart: unless-stopped
     networks:

@@ -1,0 +1,1902 @@
+2025-09-01 02:10:30 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:30 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:32 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:32 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:33 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:33 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:35 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:35 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:37 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:37 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:40 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:40 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:44 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:44 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:52 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:10:52 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:11:05 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:11:06 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:11:32 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:11:32 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:12:25 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:12:25 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:13:26 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 02:13:26 | ERROR    | phase1_sync | 建立跨表搜索索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-cross-search
+2025-09-01 03:30:39 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:30:39 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:30:39 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:30:39 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:31:09 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:31:09 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:31:09 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:31:09 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:31:39 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:31:39 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:31:39 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:31:39 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:32:09 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:32:09 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:32:09 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:32:09 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:32:39 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:32:39 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:32:39 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:32:39 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:33:09 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:33:09 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:33:09 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:33:09 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:33:39 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:33:39 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:33:39 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:33:39 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:34:09 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:34:09 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:34:09 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:34:09 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:34:39 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:34:39 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:34:39 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:34:39 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:35:09 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:35:09 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:35:09 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:35:09 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:35:39 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:35:39 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:35:39 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:35:39 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:36:09 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:36:09 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:36:09 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:36:09 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:36:39 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:36:39 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:36:39 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:36:39 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:37:09 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:37:09 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:37:09 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:37:09 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:37:39 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:37:39 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:37:39 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:37:39 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:38:09 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:38:09 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:38:09 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:38:09 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:38:39 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:38:39 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:38:39 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:38:39 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:39:09 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:39:09 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:39:09 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:39:09 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:39:40 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:39:40 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:39:40 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:39:40 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:40:10 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:40:10 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:40:10 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:40:10 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:40:40 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:40:40 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:40:40 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:40:40 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:41:10 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:41:10 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:41:10 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:41:10 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:41:40 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:41:40 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:41:40 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:41:40 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:42:10 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:42:10 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:42:10 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:42:10 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:42:40 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:42:40 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:42:40 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:42:40 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:43:10 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:43:10 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:43:10 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:43:10 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:43:40 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:43:40 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:43:40 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:43:40 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:44:10 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:44:10 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:44:10 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:44:10 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:44:40 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:44:40 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:44:40 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:44:40 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:45:10 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:45:10 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:45:10 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:45:10 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:45:40 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:45:40 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:45:40 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:45:40 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:46:10 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:46:10 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:46:10 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:46:10 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:46:40 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:46:40 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:46:40 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:46:40 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:47:10 | ERROR    | phase1_sync | 建立索引失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:47:10 | ERROR    | phase1_sync | 響應內容：{"error":{"root_cause":[{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}],"type":"mapper_parsing_exception","reason":"Failed to parse mapping: Unknown parameter [boost] on mapper [city]","caused_by":{"type":"mapper_parsing_exception","reason":"Unknown parameter [boost] on mapper [city]"}},"status":400}
+2025-09-01 03:47:10 | ERROR    | phase1_sync | 同步表 customers 失敗：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:47:10 | ERROR    | phase1_sync | 同步循環發生錯誤：400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 149, in create_index_if_not_exists
+    response.raise_for_status()
+  File "/usr/local/lib/python3.11/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://elasticsearch:9200/erp-customers
+2025-09-01 03:47:50 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:47:50 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:48:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:48:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:48:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:48:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:49:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:49:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:49:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:49:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:50:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:50:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:50:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:50:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:51:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:51:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:51:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:51:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:52:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:52:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:52:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:52:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:53:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:53:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:53:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:53:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:54:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:54:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:54:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:54:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:55:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:55:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:55:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:55:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:56:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:56:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:56:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:56:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:57:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:57:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:57:47 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:57:47 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:58:17 | ERROR    | phase1_sync | 同步表 customers 失敗：keys must be str, int, float, bool or None, not tuple
+2025-09-01 03:58:17 | ERROR    | phase1_sync | 同步循環發生錯誤：keys must be str, int, float, bool or None, not tuple
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 151, in sync_table
+    self.es.create_index_if_not_exists(
+  File "/app/scripts/phase1/es_indexer.py", line 146, in create_index_if_not_exists
+    data=json.dumps(index_body),
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+TypeError: keys must be str, int, float, bool or None, not tuple
+2025-09-01 06:11:07 | ERROR    | phase1_sync | 查詢執行失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:11:07 | ERROR    | phase1_sync | 查詢語句：SELECT * FROM customers...
+2025-09-01 06:11:07 | ERROR    | phase1_sync | 同步表 customers 失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:11:07 | ERROR    | phase1_sync | 同步循環發生錯誤：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'erp_demo.customers' doesn't exist")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 170, in sync_table
+    df = self.mysql.query_to_dataframe(query)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/mysql_connector.py", line 100, in query_to_dataframe
+    df = pd.read_sql_query(query, self.engine)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 528, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1848, in read_query
+    result = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1671, in execute
+    return self.con.exec_driver_sql(sql, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1779, in exec_driver_sql
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.ProgrammingError: (pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:11:37 | ERROR    | phase1_sync | 查詢執行失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:11:37 | ERROR    | phase1_sync | 查詢語句：SELECT * FROM customers...
+2025-09-01 06:11:37 | ERROR    | phase1_sync | 同步表 customers 失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:11:37 | ERROR    | phase1_sync | 同步循環發生錯誤：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'erp_demo.customers' doesn't exist")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 170, in sync_table
+    df = self.mysql.query_to_dataframe(query)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/mysql_connector.py", line 100, in query_to_dataframe
+    df = pd.read_sql_query(query, self.engine)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 528, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1848, in read_query
+    result = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1671, in execute
+    return self.con.exec_driver_sql(sql, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1779, in exec_driver_sql
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.ProgrammingError: (pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:12:07 | ERROR    | phase1_sync | 查詢執行失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:12:07 | ERROR    | phase1_sync | 查詢語句：SELECT * FROM customers...
+2025-09-01 06:12:07 | ERROR    | phase1_sync | 同步表 customers 失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:12:07 | ERROR    | phase1_sync | 同步循環發生錯誤：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'erp_demo.customers' doesn't exist")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 170, in sync_table
+    df = self.mysql.query_to_dataframe(query)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/mysql_connector.py", line 100, in query_to_dataframe
+    df = pd.read_sql_query(query, self.engine)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 528, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1848, in read_query
+    result = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1671, in execute
+    return self.con.exec_driver_sql(sql, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1779, in exec_driver_sql
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.ProgrammingError: (pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:12:37 | ERROR    | phase1_sync | 查詢執行失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:12:37 | ERROR    | phase1_sync | 查詢語句：SELECT * FROM customers...
+2025-09-01 06:12:37 | ERROR    | phase1_sync | 同步表 customers 失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:12:37 | ERROR    | phase1_sync | 同步循環發生錯誤：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'erp_demo.customers' doesn't exist")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 170, in sync_table
+    df = self.mysql.query_to_dataframe(query)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/mysql_connector.py", line 100, in query_to_dataframe
+    df = pd.read_sql_query(query, self.engine)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 528, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1848, in read_query
+    result = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1671, in execute
+    return self.con.exec_driver_sql(sql, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1779, in exec_driver_sql
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.ProgrammingError: (pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:13:07 | ERROR    | phase1_sync | 查詢執行失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:13:07 | ERROR    | phase1_sync | 查詢語句：SELECT * FROM customers...
+2025-09-01 06:13:07 | ERROR    | phase1_sync | 同步表 customers 失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:13:07 | ERROR    | phase1_sync | 同步循環發生錯誤：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'erp_demo.customers' doesn't exist")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 170, in sync_table
+    df = self.mysql.query_to_dataframe(query)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/mysql_connector.py", line 100, in query_to_dataframe
+    df = pd.read_sql_query(query, self.engine)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 528, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1848, in read_query
+    result = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1671, in execute
+    return self.con.exec_driver_sql(sql, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1779, in exec_driver_sql
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.ProgrammingError: (pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:13:44 | ERROR    | phase1_sync | 查詢執行失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:13:44 | ERROR    | phase1_sync | 查詢語句：SELECT * FROM customers...
+2025-09-01 06:13:44 | ERROR    | phase1_sync | 同步表 customers 失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:13:44 | ERROR    | phase1_sync | 同步循環發生錯誤：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'erp_demo.customers' doesn't exist")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 170, in sync_table
+    df = self.mysql.query_to_dataframe(query)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/mysql_connector.py", line 100, in query_to_dataframe
+    df = pd.read_sql_query(query, self.engine)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 528, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1848, in read_query
+    result = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1671, in execute
+    return self.con.exec_driver_sql(sql, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1779, in exec_driver_sql
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.ProgrammingError: (pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.customers' doesn't exist")
+[SQL: SELECT * FROM customers]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 06:51:37 | ERROR    | phase1_sync | 同步表 customers 失敗：Object of type Timestamp is not JSON serializable
+2025-09-01 06:51:37 | ERROR    | phase1_sync | 同步循環發生錯誤：Object of type Timestamp is not JSON serializable
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 198, in sync_table
+    success_count = self.es.bulk_index(index_name, batch)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/es_indexer.py", line 241, in bulk_index
+    bulk_data.append(json.dumps(doc["_source"], ensure_ascii=False))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type Timestamp is not JSON serializable
+2025-09-01 07:40:21 | ERROR    | phase1_sync | 同步表 customers 失敗：name '_json_default' is not defined
+2025-09-01 07:40:21 | ERROR    | phase1_sync | 同步循環發生錯誤：name '_json_default' is not defined
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 198, in sync_table
+    success_count = self.es.bulk_index(index_name, batch)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/es_indexer.py", line 298, in bulk_index
+    bulk_data.append(json.dumps(doc["_source"], ensure_ascii=False, default=_json_default))
+                                                                            ^^^^^^^^^^^^^
+NameError: name '_json_default' is not defined
+2025-09-01 07:46:43 | ERROR    | phase1_sync | 查詢執行失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.products' doesn't exist")
+[SQL: SELECT * FROM products]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 07:46:43 | ERROR    | phase1_sync | 查詢語句：SELECT * FROM products...
+2025-09-01 07:46:43 | ERROR    | phase1_sync | 同步表 products 失敗：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.products' doesn't exist")
+[SQL: SELECT * FROM products]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 07:46:43 | ERROR    | phase1_sync | 同步循環發生錯誤：(pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.products' doesn't exist")
+[SQL: SELECT * FROM products]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'erp_demo.products' doesn't exist")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 170, in sync_table
+    df = self.mysql.query_to_dataframe(query)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/mysql_connector.py", line 100, in query_to_dataframe
+    df = pd.read_sql_query(query, self.engine)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 528, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1848, in read_query
+    result = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pandas/io/sql.py", line 1671, in execute
+    return self.con.exec_driver_sql(sql, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1779, in exec_driver_sql
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 153, in execute
+    result = self._query(query)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/cursors.py", line 322, in _query
+    conn.query(q)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 826, in _read_query_result
+    result.read()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymysql/connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+  File "/usr/local/lib/python3.11/site-packages/pymysql/protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+  File "/usr/local/lib/python3.11/site-packages/pymysql/err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+sqlalchemy.exc.ProgrammingError: (pymysql.err.ProgrammingError) (1146, "Table 'erp_demo.products' doesn't exist")
+[SQL: SELECT * FROM products]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-01 08:00:43 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'cross_search'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 407, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 76, in __init__
+    cross_search_index = cross_search_template['cross_search']['index_name']
+                         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'cross_search'
+2025-09-01 08:00:44 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'cross_search'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 407, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 76, in __init__
+    cross_search_index = cross_search_template['cross_search']['index_name']
+                         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'cross_search'
+2025-09-01 08:00:46 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'cross_search'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 407, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 76, in __init__
+    cross_search_index = cross_search_template['cross_search']['index_name']
+                         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'cross_search'
+2025-09-01 08:00:47 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'cross_search'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 407, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 76, in __init__
+    cross_search_index = cross_search_template['cross_search']['index_name']
+                         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'cross_search'
+2025-09-01 08:00:49 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'cross_search'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 407, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 76, in __init__
+    cross_search_index = cross_search_template['cross_search']['index_name']
+                         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'cross_search'
+2025-09-01 08:00:52 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'cross_search'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 407, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 76, in __init__
+    cross_search_index = cross_search_template['cross_search']['index_name']
+                         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'cross_search'
+2025-09-01 08:00:56 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'cross_search'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 407, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 76, in __init__
+    cross_search_index = cross_search_template['cross_search']['index_name']
+                         ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'cross_search'
+2025-09-01 08:03:29 | ERROR    | phase1_sync | 同步表 companies 失敗：'index_template'
+2025-09-01 08:03:29 | ERROR    | phase1_sync | 同步循環發生錯誤：'index_template'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 154, in sync_table
+    self.tables_config['index_template']
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+KeyError: 'index_template'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 同步表 customers 失敗：'timestamp_fields'
+2025-09-01 08:09:04 | ERROR    | phase1_sync | 同步循環發生錯誤：'timestamp_fields'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 375, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 162, in sync_table
+    query = self.build_incremental_query(table_config, last_sync_time)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 233, in build_incremental_query
+    timestamp_fields = self.sync_config['incremental']['timestamp_fields']
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+KeyError: 'timestamp_fields'
+2025-09-01 08:27:23 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'incremental'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 433, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 58, in __init__
+    self.sync_state = self.load_sync_state()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 122, in load_sync_state
+    state_file = self.sync_config['incremental']['state_file']
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'incremental'
+2025-09-01 08:27:24 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'incremental'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 433, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 58, in __init__
+    self.sync_state = self.load_sync_state()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 122, in load_sync_state
+    state_file = self.sync_config['incremental']['state_file']
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'incremental'
+2025-09-01 08:27:26 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'incremental'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 433, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 58, in __init__
+    self.sync_state = self.load_sync_state()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 122, in load_sync_state
+    state_file = self.sync_config['incremental']['state_file']
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'incremental'
+2025-09-01 08:27:27 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'incremental'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 433, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 58, in __init__
+    self.sync_state = self.load_sync_state()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 122, in load_sync_state
+    state_file = self.sync_config['incremental']['state_file']
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'incremental'
+2025-09-01 08:28:56 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'incremental'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 433, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 58, in __init__
+    self.sync_state = self.load_sync_state()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 122, in load_sync_state
+    state_file = self.sync_config['incremental']['state_file']
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'incremental'
+2025-09-01 08:28:57 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'incremental'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 433, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 58, in __init__
+    self.sync_state = self.load_sync_state()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 122, in load_sync_state
+    state_file = self.sync_config['incremental']['state_file']
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'incremental'
+2025-09-01 08:28:59 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'incremental'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 433, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 58, in __init__
+    self.sync_state = self.load_sync_state()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 122, in load_sync_state
+    state_file = self.sync_config['incremental']['state_file']
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'incremental'
+2025-09-01 08:29:00 | ERROR    | phase1_sync | 程式發生嚴重錯誤：'incremental'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 433, in main
+    syncer = CrossTableSync()
+             ^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 58, in __init__
+    self.sync_state = self.load_sync_state()
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 122, in load_sync_state
+    state_file = self.sync_config['incremental']['state_file']
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'incremental'
+2025-09-01 08:43:34 | ERROR    | phase1_sync | 同步表 orders 失敗：'incremental'
+2025-09-01 08:43:34 | ERROR    | phase1_sync | 同步循環發生錯誤：'incremental'
+Traceback (most recent call last):
+  File "/app/scripts/phase1/main.py", line 401, in run
+    count = self.sync_table(table_config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/scripts/phase1/main.py", line 208, in sync_table
+    self.save_sync_state()
+  File "/app/scripts/phase1/main.py", line 133, in save_sync_state
+    state_file = self.sync_config['incremental']['state_file']
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'incremental'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'
+2025-09-01 08:44:24 | ERROR    | phase1_sync | 構建跨表搜索文檔失敗: 'content'

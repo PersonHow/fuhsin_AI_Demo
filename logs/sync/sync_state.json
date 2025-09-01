@@ -1,0 +1,18 @@
+{
+  "customers": {
+    "last_sync": "2025-09-01T07:46:43.259939",
+    "record_count": 8
+  },
+  "companies": {
+    "last_sync": "2025-09-01T08:09:04.455449",
+    "record_count": 10
+  },
+  "orders": {
+    "last_sync": "2025-09-01T08:44:23.780267",
+    "record_count": 6
+  },
+  "order_info": {
+    "last_sync": "2025-09-01T08:44:24.169811",
+    "record_count": 14
+  }
+}

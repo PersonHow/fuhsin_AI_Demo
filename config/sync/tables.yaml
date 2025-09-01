@@ -1,167 +1,137 @@
 # 要同步的資料表設定
+index_template:
+  template_name: erp-generic-template
+  index_patterns: ["erp-*"]       # 會套用到 erp-companies / erp-orders ... 等
+  settings:
+    number_of_shards: 1
+    number_of_replicas: 0
+    analysis:
+      analyzer:
+        zh_ik_smart:
+          type: custom
+          tokenizer: ik_smart
+          filter: [lowercase]
+        zh_ik_max:
+          type: custom
+          tokenizer: ik_max_word
+          filter: [lowercase]
+  mappings:
+    dynamic: true
+    properties:
+      created_time: { type: date,  format: "yyyy-MM-dd HH:mm:ss||strict_date_optional_time||epoch_millis" }
+      updated_time: { type: date,  format: "yyyy-MM-dd HH:mm:ss||strict_date_optional_time||epoch_millis" }
+      order_date:   { type: date,  format: "yyyy-MM-dd||strict_date_optional_time||epoch_millis" }
+      company_id:   { type: keyword }
+      order_id:     { type: keyword }
+      # 常見中文字串欄位給 IK（表現更好）
+      company_name:
+        type: text
+        analyzer: zh_ik_max
+        search_analyzer: zh_ik_smart
+      customer_name:
+        type: text
+        analyzer: zh_ik_max
+        search_analyzer: zh_ik_smart
+
 tables:
-  # 客戶表
+  # 公司主表（公司/客戶/供應商母表）
+  - name: companies
+    index_name: erp-companies
+    primary_key: company_id
+    fields:
+      - company_id
+      - company_name
+      - company_short
+      - company_tax_id
+      - company_address
+      - company_phone
+      - company_email
+      - company_type     # 1=供應商,2=客戶,3=供應商兼客戶
+      - created_time
+      - updated_time
+    search_fields:
+      company_name: 3.0
+      company_short: 2.0
+      company_tax_id: 1.5
+
+  # 客戶專用欄位表（以 company_id 當主鍵）
   - name: customers
     index_name: erp-customers
-    primary_key: customer_id
-    # 要同步的欄位（不設定=全部欄位）
+    primary_key: company_id
     fields:
-      - customer_id
-      - customer_name
-      - company_name
-      - contact_email
-      - phone
-      - address
-      - city
-      - country
-      - credit_limit
-      - status
-      - created_at
-      - updated_at
-    # 搜尋權重設定
+      - company_id
+      - customer_contact
+      - customer_contact_phone
+      - invoice_type
+      - invoice_address
+      - tax_type
+      - industry_type
+      - customer_tier
+      - blacklisted
+      - remark
+      - created_time
+      - updated_time
     search_fields:
-      customer_name: 3.0
-      company_name: 2.5
-      contact_email: 2.0
-      city: 1.5
-    # 資料轉換規則
-    transformations:
-      - field: phone
-        type: normalize_phone
-      - field: status
-        type: enum_mapping
-        mapping:
-          A: 活躍
-          I: 非活躍
-          S: 暫停
-  
-  # 產品表
-  - name: products
-    index_name: erp-products
-    primary_key: product_id
-    fields:
-      - product_id
-      - product_code
-      - product_name
-      - category_id
-      - description
-      - unit_price
-      - stock_quantity
-      - reorder_level
-      - discontinued
-      - created_at
-      - updated_at
-    search_fields:
-      product_code: 3.0
-      product_name: 2.5
-      description: 1.5
-    transformations:
-      - field: unit_price
-        type: currency
-        currency: TWD
-      - field: discontinued
-        type: boolean
-  
-  # 訂單表
+      customer_contact: 2.0
+      invoice_address: 1.5
+      industry_type: 1.2
+
+  # 訂單主表
   - name: orders
     index_name: erp-orders
     primary_key: order_id
     fields:
       - order_id
-      - order_number
+      - quotation_id
+      - quotation_from
       - customer_id
+      - customer_name
+      - customer_short
+      - customer_owner
+      - customer_contact
+      - customer_address
+      - customer_phone
+      - customer_email
       - order_date
-      - required_date
-      - shipped_date
-      - ship_via
-      - freight
-      - ship_name
-      - ship_address
-      - ship_city
-      - ship_country
+      - delivery_date
       - order_status
+      - total
+      - tax
       - total_amount
-      - created_at
-      - updated_at
+      - tax_type
+      - currency
+      - remark
+      - created_time
+      - updated_time
     search_fields:
-      order_number: 3.0
-      ship_name: 2.0
-      ship_city: 1.5
-    # 關聯設定（用於 JOIN）
-    relations:
-      - type: lookup
-        table: customers
-        local_field: customer_id
-        foreign_field: customer_id
-        fields_to_include:
-          - customer_name
-          - company_name
-    transformations:
-      - field: order_status
-        type: enum_mapping
-        mapping:
-          P: 待處理
-          C: 已確認
-          S: 已出貨
-          D: 已送達
-          X: 已取消
-  
-  # 訂單明細表
-  - name: order_details
-    index_name: erp-order-details
-    primary_key: 
-      - order_id
-      - product_id
-    fields:
-      - order_id
-      - product_id
-      - unit_price
-      - quantity
-      - discount
-      - line_total
-    # 關聯設定
-    relations:
-      - type: lookup
-        table: orders
-        local_field: order_id
-        foreign_field: order_id
-        fields_to_include:
-          - order_number
-          - order_date
-          - customer_id
-      - type: lookup
-        table: products
-        local_field: product_id
-        foreign_field: product_id
-        fields_to_include:
-          - product_name
-          - product_code
-    search_fields:
-      order_number: 2.0
-      product_name: 2.0
+      order_id: 3.0
+      customer_name: 2.5
+      customer_contact: 1.5
 
-# 索引模板設定
-index_template:
-  # 分片和副本設定
-  settings:
-    number_of_shards: 1
-    number_of_replicas: 0
-    refresh_interval: 5s
-  
-  # 分析器設定
-  analysis:
-    default_analyzer: ik_max_word
-    search_analyzer: ik_smart
-    
-    # 自訂分析器
-    custom_analyzers:
-      - name: product_code_analyzer
-        tokenizer: keyword
-        filters:
-          - lowercase
-          - trim
-      
-      - name: email_analyzer
-        tokenizer: uax_url_email
-        filters:
-          - lowercase
+  # 訂單明細表
+  - name: order_info
+    index_name: erp-order-info
+    primary_key: order_detail_id
+    fields:
+      - order_detail_id
+      - order_id
+      - item_group
+      - main_items
+      - classification
+      - processing_type
+      - material_id
+      - thickness
+      - width
+      - length
+      - diameter
+      - weight
+      - quantity
+      - unit_price
+      - subtotal
+      - specification
+      - created_time
+      - updated_time
+    search_fields:
+      processing_type: 2.0
+      classification: 1.5
+      specification: 1.2

@@ -1,130 +1,71 @@
-# 跨表搜索專用索引模板
 cross_search:
   index_name: erp-cross-search
-  
-  # 索引設定
+
   settings:
-    number_of_shards: 2
+    number_of_shards: 1
     number_of_replicas: 0
-    refresh_interval: 1s
-    
-    # 分析器設定
     analysis:
       analyzer:
-        # 跨表搜索分析器
-        cross_search_analyzer:
-          type: custom
-          char_filter:
-            - html_strip
-          tokenizer: ik_max_word
-          filter:
-            - lowercase
-            - synonym_filter
-            - stop_words_filter
-            
-        # 搜索時使用的分析器
-        cross_search_query:
+        zh_ik_smart:
           type: custom
           tokenizer: ik_smart
-          filter:
-            - lowercase
-            - synonym_filter
-      
-      # 同義詞過濾器
-      filter:
-        synonym_filter:
-          type: synonym
-          synonyms_path: analysis-ik/synonyms.txt
-        stop_words_filter:
-          type: stop
-          stopwords_path: analysis-ik/stopwords.txt
-  
-  # 映射設定
+          filter: [lowercase]
+        zh_ik_max:
+          type: custom
+          tokenizer: ik_max_word
+          filter: [lowercase]
+
   mappings:
+    dynamic: true
     properties:
-      # 文檔類型
-      doc_type:
-        type: keyword
-      
-      # 統一的 ID
-      unified_id:
-        type: keyword
-      
-      # 主要搜索內容
-      title:
-        type: text
-        analyzer: cross_search_analyzer
-        search_analyzer: cross_search_query
-        fields:
-          keyword:
-            type: keyword
-          suggest:
-            type: completion
-      
-      # 詳細內容
-      content:
-        type: text
-        analyzer: cross_search_analyzer
-        search_analyzer: cross_search_query
-      
-      # 標籤
-      tags:
-        type: keyword
-      
-      # 分類
-      category:
-        type: keyword
-      
-      # 關聯數據
-      related_ids:
-        type: nested
-        properties:
-          type:
-            type: keyword
-          id:
-            type: keyword
-      
-      # 數值範圍（用於過濾）
-      numeric_values:
-        type: object
-        properties:
-          price:
-            type: double
-          quantity:
-            type: integer
-          amount:
-            type: double
-      
-      # 日期範圍
-      date_values:
-        type: object
-        properties:
-          created_date:
-            type: date
-          modified_date:
-            type: date
-          order_date:
-            type: date
-      
-      # 搜索權重
-      boost_score:
-        type: float
-      
-      # 簡繁體版本
-      content_simplified:
-        type: text
-        analyzer: ik_max_word
-      
-      content_traditional:
-        type: text
-        analyzer: ik_max_word
-      
-      # 元數據
-      _metadata:
-        properties:
-          source_index:
-            type: keyword
-          source_id:
-            type: keyword
-          last_updated:
-            type: date
+      # 來源識別
+      source_table: { type: keyword }
+      source_id:    { type: keyword }
+
+      # 通用顯示欄位
+      title:   { type: text, analyzer: zh_ik_max, search_analyzer: zh_ik_smart }
+      summary: { type: text, analyzer: zh_ik_max, search_analyzer: zh_ik_smart }
+
+      # 常見欄位（依你現有 schema）
+      company_id:   { type: keyword }
+      order_id:     { type: keyword }
+      order_date:   { type: date, format: "yyyy-MM-dd||strict_date_optional_time||epoch_millis" }
+      created_time: { type: date, format: "yyyy-MM-dd HH:mm:ss||strict_date_optional_time||epoch_millis" }
+      updated_time: { type: date, format: "yyyy-MM-dd HH:mm:ss||strict_date_optional_time||epoch_millis" }
+
+      customer_name:    { type: text, analyzer: zh_ik_smart }
+      customer_contact: { type: text, analyzer: zh_ik_smart }
+      company_name:     { type: text, analyzer: zh_ik_smart }
+      item_group:       { type: text, analyzer: zh_ik_smart }
+      classification:   { type: text, analyzer: zh_ik_smart }
+      processing_type:  { type: text, analyzer: zh_ik_smart }
+      specification:    { type: text, analyzer: zh_ik_max }
+
+  templates:
+    companies:
+      _index: erp-cross-search
+      title:  "{{ company_name }}"
+      summary: "電話: {{ company_phone }}；地址: {{ company_address }}"
+      source_table: "companies"
+      source_id: "{{ company_id }}"
+
+    customers:
+      _index: erp-cross-search
+      title:  "{{ customer_contact }}（{{ company_id }}）"
+      summary: "發票地址: {{ invoice_address }}；產業: {{ industry_type }}；備註: {{ remark }}"
+      source_table: "customers"
+      source_id: "{{ company_id }}"
+
+    orders:
+      _index: erp-cross-search
+      title:  "{{ order_id }}｜{{ customer_name }}"
+      summary: "下單: {{ order_date }}；總計: {{ total_amount }}；狀態: {{ order_status }}"
+      source_table: "orders"
+      source_id: "{{ order_id }}"
+
+    order_info:
+      _index: erp-cross-search
+      title:  "{{ order_id }}｜{{ processing_type }}｜{{ classification }}"
+      summary: "數量: {{ quantity }}；單價: {{ unit_price }}；小計: {{ subtotal }}"
+      source_table: "order_info"
+      source_id: "{{ order_detail_id }}"

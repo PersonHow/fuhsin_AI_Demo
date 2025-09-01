@@ -32,12 +32,12 @@ sync:
   mode: incremental
   
   # 增量同步設定
-  incremental:
+  incremental_fields:
     # 用於判斷更新的欄位
-    timestamp_fields:
-      - updated_at
-      - modified_time
-      - last_modified
+    customers: [created_time, updated_time]
+    companies: [created_time, updated_time]
+    orders: [created_time, updated_time, order_date]
+    order_info: [created_time, updated_time]
     
     # 狀態儲存路徑
-    state_file: /app/logs/sync/sync_state.json
+  state_file: /app/logs/sync/sync_state.json

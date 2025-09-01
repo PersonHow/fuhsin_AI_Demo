@@ -119,7 +119,7 @@ class CrossTableSync:
     
     def load_sync_state(self):
         """載入同步狀態"""
-        state_file = self.sync_config['incremental']['state_file']
+        state_file = self.sync_config['state_file']
         state_path = Path(state_file)
         
         if state_path.exists():
@@ -130,7 +130,7 @@ class CrossTableSync:
     
     def save_sync_state(self):
         """儲存同步狀態"""
-        state_file = self.sync_config['incremental']['state_file']
+        state_file = self.sync_config['state_file']
         state_path = Path(state_file)
         state_path.parent.mkdir(parents=True, exist_ok=True)
         
@@ -228,25 +228,51 @@ class CrossTableSync:
             raise
     
     def build_incremental_query(self, table_config, last_sync_time):
-        """建立增量查詢語句"""
+        """
+        建立增量查詢語句
+        依表設定與最後同步時間，產生增量 SQL。
+            優先序：
+            1) database.yaml -> sync.incremental_fields.<table>
+            2) tables.yaml   -> tables[n].incremental_fields
+            3) database.yaml -> sync.incremental.timestamp_fields（舊版相容）
+            4) 預設欄位：updated_time, created_time, order_date, updated_at, created_at
+        """
         table_name = table_config['name']
-        timestamp_fields = self.sync_config['incremental']['timestamp_fields']
-        
+
+        # 1) 每表的增量欄位（database.yaml -> sync.incremental_fields.<table>）
+        per_table = (self.sync_config.get('incremental_fields') or {}).get(table_name, [])
+
+        # 2) tables.yaml 也可能定義 incremental_fields
+        from_table_cfg = table_config.get('incremental_fields', [])
+
+        # 3) 舊寫法：全域 timestamp_fields（database.yaml -> sync.incremental.timestamp_fields）
+        global_list = (self.sync_config.get('incremental') or {}).get('timestamp_fields', [])
+
+        # 4) 預設候選（依你實際 schema 調整）
+        defaults = ['updated_time', 'created_time', 'order_date', 'updated_at', 'created_at']
+
+        # 按優先序合併去重（保留順序）
+        candidates = []
+        for src in (per_table, from_table_cfg, global_list, defaults):
+            for f in src:
+                if f and f not in candidates:
+                    candidates.append(f)
+
         # 找出表中存在的時間戳欄位
         columns = self.mysql.get_table_columns(table_name)
-        
-        for field in timestamp_fields:
+
+        for field in candidates:
             if field in columns:
                 return f"""
                     SELECT * FROM {table_name}
                     WHERE {field} > '{last_sync_time}'
                     ORDER BY {field}
                 """
-        
+
         # 如果沒有時間戳欄位，退回全量同步
         logger.warning(f"表 {table_name} 沒有時間戳欄位，使用全量同步")
         return f"SELECT * FROM {table_name}"
-    
+        
     def process_relations(self, df, relations):
         """處理關聯查詢"""
         import pandas as pd
