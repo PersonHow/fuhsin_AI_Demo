@@ -15,11 +15,15 @@ services:
       - ELASTIC_PASSWORD=admin@12345
       
     # memory settings
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
 
       - network.host=0.0.0.0
 
       - bootstrap.memory_lock=true
+      
+    # 優化向量搜尋
+      - indices.knn.algo.param=16
+      - indices.knn.algo.param.ef_construction=100
     ports:
       - "9200:9200"    # REST API
       - "9300:9300"    # 節點間要通訊，單機雖用不到但仍需保留
@@ -113,7 +117,66 @@ services:
     networks:
       - elastic
 
-  
+  vector-generator:
+    image: python:3.11-slim
+    container_name: vector-generator
+    depends_on:
+      - elasticsearch
+    environment:
+      - ES_URL=http://elasticsearch:9200
+      - ES_USER=elastic
+      - ES_PASS=admin@12345
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-http://api.openai.com/v1}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - VECTOR_BATCH_SIZE=100
+      - SLEEP=10
+    volumes:
+      - ./scripts:/scripts:ro
+    working_dir: /scripts
+    command: >
+      bash -c "
+        pip install --no-cache-dir openai requests numpy &&
+        python vector_service.py 
+      "
+    restart: unless-stopped
+    networks:
+      - elastic
+
+  rag-api:
+    image: python:3.11-slim
+    container_name: rag-api
+    depends_on:
+      - elasticsearch
+      - vector-generator
+    environment:
+      - ES_URL=http://elasticsearch:9200
+      - ES_USER=elastic
+      - ES_PASS=admin@12345
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - GPT_MODEL=${GPT_MODEL:-gpt-4o-mini}
+    ports:
+      - "8000:8000"  # FastAPI 服務
+    volumes:
+      - ./scripts:/scripts:ro
+    working_dir: /scripts
+    command: >
+      bash -c "
+        pip install --no-cache-dir openai requests fastapi uvicorn[standard] &&
+        python rag_api.py
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - elastic
+
 volumes:
   es_data:
     driver: local

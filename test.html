@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能資料檢索系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.online {
+            background: #44ff44;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .search-section {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .search-button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .search-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .search-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .options {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .option-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .option-group label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .results-section {
+            padding: 40px;
+            min-height: 400px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            display: none;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .answer-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .answer-box.active {
+            display: block;
+        }
+        
+        .answer-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .answer-content {
+            color: #444;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        
+        .sources {
+            margin-top: 30px;
+        }
+        
+        .sources h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .source-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .source-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .source-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .source-score {
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .source-meta {
+            display: flex;
+            gap: 15px;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .source-content {
+            color: #444;
+            line-height: 1.6;
+        }
+        
+        .highlight {
+            background: yellow;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .error-message.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 智能資料檢索系統</h1>
+            <p>基於 RAG 技術的企業資料智能問答</p>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-indicator" id="es-status"></div>
+                    <span>Elasticsearch</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator" id="ai-status"></div>
+                    <span>OpenAI</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator" id="vector-status"></div>
+                    <span>向量索引</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" 
+                       class="search-input" 
+                       id="query-input" 
+                       placeholder="請輸入您的問題，例如：查詢產品 P001 的相關資訊">
+                <button class="search-button" id="search-btn" onclick="performSearch()">
+                    🔍 智能搜尋
+                </button>
+            </div>
+            
+            <div class="options">
+                <div class="option-group">
+                    <label>搜尋模式：</label>
+                    <select id="search-mode">
+                        <option value="hybrid">混合搜尋（推薦）</option>
+                        <option value="vector">語意搜尋</option>
+                        <option value="keyword">關鍵字搜尋</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label>結果數量：</label>
+                    <select id="top-k">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label>
+                        <input type="checkbox" id="use-gpt" checked>
+                        使用 AI 生成答案
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-section">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在搜尋並生成答案...</p>
+            </div>
+            
+            <div class="error-message" id="error"></div>
+            
+            <div class="answer-box" id="answer-box">
+                <h3>🎯 AI 答案</h3>
+                <div class="answer-content" id="answer-content"></div>
+            </div>
+            
+            <div class="sources" id="sources" style="display: none;">
+                <h3>📚 相關資料來源</h3>
+                <div id="source-list"></div>
+            </div>
+            
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-hits">0</div>
+                    <div class="stat-label">搜尋結果</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="process-time">0</div>
+                    <div class="stat-label">處理時間(ms)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="search-mode-display">-</div>
+                    <div class="stat-label">搜尋模式</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        // 檢查系統狀態
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                document.getElementById('es-status').classList.toggle('online', data.elasticsearch);
+                document.getElementById('ai-status').classList.toggle('online', data.openai);
+                
+                // 檢查向量化狀態
+                const statsResponse = await fetch(`${API_URL}/stats`);
+                const stats = await statsResponse.json();
+                const vectorProgress = stats.vectorization?.progress_percent || 0;
+                document.getElementById('vector-status').classList.toggle('online', vectorProgress > 0);
+            } catch (error) {
+                console.error('Health check failed:', error);
+            }
+        }
+        
+        // 執行搜尋
+        async function performSearch() {
+            const query = document.getElementById('query-input').value.trim();
+            if (!query) {
+                alert('請輸入搜尋內容');
+                return;
+            }
+            
+            // 清除之前的結果
+            document.getElementById('error').classList.remove('active');
+            document.getElementById('answer-box').classList.remove('active');
+            document.getElementById('sources').style.display = 'none';
+            document.getElementById('stats').style.display = 'none';
+            
+            // 顯示載入中
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('search-btn').disabled = true;
+            
+            try {
+                const requestBody = {
+                    query: query,
+                    mode: document.getElementById('search-mode').value,
+                    top_k: parseInt(document.getElementById('top-k').value),
+                    use_gpt: document.getElementById('use-gpt').checked
+                };
+                
+                const response = await fetch(`${API_URL}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Search failed:', error);
+                document.getElementById('error').textContent = '搜尋失敗：' + error.message;
+                document.getElementById('error').classList.add('active');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('search-btn').disabled = false;
+            }
+        }
+        
+        // 顯示結果
+        function displayResults(data) {
+            // 顯示 AI 答案
+            if (data.answer) {
+                document.getElementById('answer-content').textContent = data.answer;
+                document.getElementById('answer-box').classList.add('active');
+            }
+            
+            // 顯示來源
+            if (data.sources && data.sources.length > 0) {
+                const sourceList = document.getElementById('source-list');
+                sourceList.innerHTML = '';
+                
+                data.sources.forEach((source, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'source-card';
+                    
+                    const highlightContent = source.highlights && Object.values(source.highlights).length > 0
+                        ? Object.values(source.highlights).flat().join(' ... ')
+                        : source.content;
+                    
+                    card.innerHTML = `
+                        <div class="source-header">
+                            <h4>來源 ${index + 1}</h4>
+                            <span class="source-score">相關度: ${source.score.toFixed(2)}</span>
+                        </div>
+                        <div class="source-meta">
+                            <span>📁 ${source.metadata.source_file || 'unknown'}</span>
+                            <span>📊 ${source.metadata.table_name || 'unknown'}</span>
+                            <span>📍 記錄 #${source.metadata.record_index || 0}</span>
+                        </div>
+                        <div class="source-content">
+                            ${highlightContent}
+                        </div>
+                    `;
+                    
+                    sourceList.appendChild(card);
+                });
+                
+                document.getElementById('sources').style.display = 'block';
+            }
+            
+            // 顯示統計
+            document.getElementById('total-hits').textContent = data.total_hits;
+            document.getElementById('process-time').textContent = data.processing_time_ms;
+            document.getElementById('search-mode-display').textContent = 
+                data.search_mode === 'hybrid' ? '混合' : 
+                data.search_mode === 'vector' ? '語意' : '關鍵字';
+            document.getElementById('stats').style.display = 'flex';
+        }
+        
+        // Enter 鍵觸發搜尋
+        document.getElementById('query-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // 初始化
+        checkHealth();
+        setInterval(checkHealth, 30000); // 每30秒檢查一次狀態
+    </script>
+</body>
+</html>
