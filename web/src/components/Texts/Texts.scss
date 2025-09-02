@@ -1,0 +1,39 @@
+$hSeries: rgb(45, 45, 45);
+$pColor: rgb(65, 65, 65);
+$spanColor: rgb(75, 75, 75);
+$titleColor: rgb(40, 40, 40);
+$contentColor: rgb(70, 70, 70);
+$hText: 'RobotoMono';
+$normalText: 'Ubuntu';
+
+
+h1,
+h2,
+h3 {
+    color: $hSeries;
+    font-weight: 600;
+    font-family: $hText, sans-serif;
+}
+
+
+p {
+    color: $pColor;
+    font-family: $normalText, sans-serif;
+}
+
+span {
+    color: $spanColor;
+    font-family: $normalText, sans-serif;
+}
+
+.bigTitle {
+    font-size: 48px;
+    font-weight: 800;
+    color: $titleColor;
+    font-family: $hText, sans-serif;
+}
+
+.content {
+    color: $contentColor;
+    font-family: $normalText, sans-serif;
+}
