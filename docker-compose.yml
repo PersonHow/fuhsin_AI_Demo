@@ -177,6 +177,20 @@ services:
     networks:
       - elastic
 
+
+  # React 前端應用
+  web-ui:
+    build: ./web
+    container_name: web-ui
+    depends_on:
+      - rag-api
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=/api
+    restart: unless-stopped
+    networks:
+      - elastic
 volumes:
   es_data:
     driver: local
