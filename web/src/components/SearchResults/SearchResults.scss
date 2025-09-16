@@ -1,0 +1,459 @@
+// SearchResults.scss
+.search-results {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+
+    // 結果標題區
+    .results-header {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        .results-info {
+            h2 {
+                margin: 0 0 12px 0;
+                color: #2c3e50;
+                font-size: 24px;
+            }
+
+            .results-meta {
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+
+                span {
+                    color: #6c757d;
+                    font-size: 14px;
+
+                    &.result-count {
+                        font-weight: 600;
+                        color: #2c3e50;
+                    }
+                }
+            }
+
+            .related-stats {
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid #e0e0e0;
+                color: #6c757d;
+                font-size: 14px;
+            }
+        }
+    }
+
+    // AI 回答區塊
+    .ai-answer {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+
+        .ai-answer-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+
+            svg {
+                color: white;
+            }
+
+            h3 {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 600;
+            }
+        }
+
+        .ai-answer-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 20px;
+            line-height: 1.7;
+
+            p {
+                margin: 6px 0;
+                font-size: 20px;
+
+                &:first-child {
+                    margin-top: 0;
+                }
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+
+            h4.answer-section-title {
+                margin: 10px 0 6px 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: #ffd700;
+            }
+
+            li.answer-list-item {
+                margin: 4px 0;
+                padding-left: 20px;
+                position: relative;
+                list-style: none;
+
+                &:before {
+                    content: "•";
+                    position: absolute;
+                    left: 0;
+                    color: #ffd700;
+                }
+            }
+        }
+    }
+
+    // 相關文檔列表
+    .results-list {
+        h3 {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .result-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+
+            &:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                transform: translateY(-2px);
+            }
+
+            // 標題列
+            .result-header {
+                background: #f8f9fa;
+                padding: 16px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #e0e0e0;
+
+                .result-title {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                    flex: 1;
+
+                    .result-number {
+                        background: #667eea;
+                        color: white;
+                        width: 28px;
+                        height: 28px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 14px;
+                        font-weight: 600;
+                    }
+
+                    .table-badge {
+                        background: #28a745;
+                        color: white;
+                        padding: 4px 12px;
+                        border-radius: 16px;
+                        font-size: 12px;
+                        font-weight: 500;
+                    }
+
+                    .record-id {
+                        color: #495057;
+                        font-size: 14px;
+                        font-weight: 500;
+                    }
+
+                    .score {
+                        margin-left: auto;
+                        color: #6c757d;
+                        font-size: 13px;
+                        padding: 4px 8px;
+                        background: rgba(0, 0, 0, 0.05);
+                        border-radius: 4px;
+                    }
+                }
+
+                .expand-button {
+                    background: white;
+                    border: 1px solid #dee2e6;
+                    color: #495057;
+                    padding: 6px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: all 0.2s;
+
+                    &:hover {
+                        background: #667eea;
+                        color: white;
+                        border-color: #667eea;
+                    }
+                }
+            }
+
+            // 元資料
+            .result-metadata {
+                padding: 12px 20px;
+                background: #fafbfc;
+                border-bottom: 1px solid #e0e0e0;
+                display: flex;
+                gap: 24px;
+                font-size: 13px;
+
+                .metadata-item {
+                    color: #6c757d;
+
+                    strong {
+                        color: #495057;
+                        margin-right: 4px;
+                    }
+                }
+            }
+
+            // 簡短摘要
+            .result-summary {
+                padding: 16px 20px;
+
+                .summary-item {
+                    display: inline-block;
+                    background: #e7f3ff;
+                    color: #0066cc;
+                    padding: 4px 12px;
+                    border-radius: 16px;
+                    margin: 4px;
+                    font-size: 13px;
+                    font-weight: 500;
+                }
+
+                .brief-highlight {
+                    margin-top: 12px;
+                    padding: 12px;
+                    background: #f8f9fa;
+                    border-left: 3px solid #667eea;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    line-height: 1.6;
+
+                    strong {
+                        color: #495057;
+                        margin-right: 8px;
+                    }
+
+                    mark {
+                        background: #fff3cd;
+                        color: #856404;
+                        padding: 2px 4px;
+                        border-radius: 3px;
+                        font-weight: 500;
+                    }
+                }
+            }
+
+            // 展開的詳細資料
+            .result-details-expanded {
+                padding: 20px;
+                background: #fafbfc;
+
+                .field-group {
+                    margin-bottom: 24px;
+
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+
+                    .group-title {
+                        color: #2c3e50;
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 12px;
+                        padding-bottom: 8px;
+                        border-bottom: 2px solid #e0e0e0;
+                    }
+
+                    .group-content {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                        gap: 12px;
+
+                        .field-item {
+                            display: flex;
+                            padding: 8px 12px;
+                            background: white;
+                            border-radius: 6px;
+                            border: 1px solid #e0e0e0;
+
+                            .field-label {
+                                color: #6c757d;
+                                min-width: 120px;
+                                font-size: 14px;
+                            }
+
+                            .field-value {
+                                color: #2c3e50;
+                                font-weight: 500;
+                                font-size: 14px;
+                                word-break: break-word;
+                            }
+                        }
+                    }
+                }
+
+                .highlight-section {
+                    margin-top: 24px;
+                    padding-top: 24px;
+                    border-top: 2px solid #e0e0e0;
+
+                    h4 {
+                        color: #2c3e50;
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 12px;
+                    }
+
+                    .highlight-item {
+                        margin-bottom: 16px;
+
+                        strong {
+                            display: block;
+                            color: #495057;
+                            margin-bottom: 8px;
+                            font-size: 14px;
+                        }
+
+                        p {
+                            margin: 8px 0;
+                            padding: 12px;
+                            background: white;
+                            border-radius: 6px;
+                            border: 1px solid #e0e0e0;
+                            line-height: 1.6;
+
+                            mark {
+                                background: #fff3cd;
+                                color: #856404;
+                                padding: 2px 4px;
+                                border-radius: 3px;
+                                font-weight: 500;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// 響應式設計
+@media (max-width: 768px) {
+    .search-results {
+        padding: 12px;
+
+        .results-header .results-info {
+            h2 {
+                font-size: 20px;
+            }
+
+            .results-meta {
+                font-size: 12px;
+            }
+        }
+
+        .results-list .result-item {
+            .result-header {
+                padding: 12px 16px;
+
+                .result-title {
+                    gap: 8px;
+
+                    .score {
+                        margin-left: 0;
+                        width: 100%;
+                        margin-top: 8px;
+                    }
+                }
+            }
+
+            .result-details-expanded {
+                padding: 16px;
+
+                .field-group .group-content {
+                    grid-template-columns: 1fr;
+                }
+            }
+        }
+    }
+}
+
+// 深色模式支援
+@media (prefers-color-scheme: dark) {
+    .search-results {
+        background: #1a1a1a;
+        color: #e0e0e0;
+
+        .results-header {
+            background: #2d2d2d;
+
+            .results-info h2 {
+                color: #e0e0e0;
+            }
+        }
+
+        .results-list .result-item {
+            background: #2d2d2d;
+            border-color: #3d3d3d;
+
+            .result-header {
+                background: #333;
+                border-color: #3d3d3d;
+            }
+
+            .result-metadata {
+                background: #2a2a2a;
+                border-color: #3d3d3d;
+            }
+
+            .result-summary {
+                .summary-item {
+                    background: #1a3a52;
+                    color: #4da3ff;
+                }
+
+                .brief-highlight {
+                    background: #2a2a2a;
+                    border-color: #667eea;
+                }
+            }
+
+            .result-details-expanded {
+                background: #2a2a2a;
+
+                .field-group .group-content .field-item {
+                    background: #333;
+                    border-color: #3d3d3d;
+
+                    .field-value {
+                        color: #e0e0e0;
+                    }
+                }
+            }
+        }
+    }
+}
