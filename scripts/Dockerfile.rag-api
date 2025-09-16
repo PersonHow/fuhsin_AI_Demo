@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+WORKDIR /scripts
+
+# 安裝依賴
+RUN pip install --no-cache-dir \
+    openai \
+    requests \
+    fastapi \
+    uvicorn[standard] \
+    numpy
+
+# 複製腳本
+COPY rag_api.py /scripts/
+
+# 設定環境變數預設值
+ENV ES_URL=http://elasticsearch:9200
+ENV ES_USER=elastic
+ENV ES_PASS=admin@12345
+ENV OPENAI_BASE_URL=https://api.openai.com/v1
+ENV EMBEDDING_MODEL=text-embedding-3-small
+ENV GPT_MODEL=gpt-4o-mini
+
+EXPOSE 8000
+
+# 直接執行 Python 腳本
+CMD ["python", "rag_api.py"]

@@ -12,7 +12,7 @@ services:
 
     # security settings
       - xpack.security.enabled=true
-      - ELASTIC_PASSWORD=admin@12345
+      - ELASTIC_PASSWORD=${ES_PASS}
       
     # memory settings
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
@@ -20,14 +20,17 @@ services:
       - network.host=0.0.0.0
 
       - bootstrap.memory_lock=true
+      
+    # 優化設定
+      - indices.memory.index_buffer_size=30%
+      - indices.queries.cache.size=15%
+      - indices.requests.cache.size=2%
     ports:
       - "9200:9200"    # REST API
       - "9300:9300"    # 節點間要通訊，單機雖用不到但仍需保留
     volumes:
       - es_data:/usr/share/elasticsearch/data
       - es_logs:/usr/share/elasticsearch/logs
-      # - es_plugins:/usr/share/elasticsearch/plugins
-      # - ./config/analysis-ik:/usr/share/elasticsearch/config/analysis-ik:ro
       - ./data/import:/data/import:rw
 # Linux 實機長需要; Mac/Win 通常不用更動
     ulimits:
@@ -39,7 +42,8 @@ services:
         hard: 262144
     
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      # test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS -u elastic:${ES_PASS} 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=30s' >/dev/null"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -56,7 +60,8 @@ services:
     container_name: kibana
     hostname: kibana
     depends_on: 
-    - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     environment:
     # connection settings
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
@@ -89,31 +94,230 @@ services:
     networks:
       - elastic
 
-
-# 新增：自動檔案處理服務
-  auto-importer:
+# 向量檢索服務
+  vector-generator:
     image: python:3.11-slim
-    container_name: auto-importer
+    container_name: vector-generator
     depends_on:
       - elasticsearch
     environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - ELASTIC_USERNAME=elastic
-      - ELASTIC_PASSWORD=admin@12345
+      - ES_URL=http://elasticsearch:9200
+      - ES_USER=${ES_USER}
+      - ES_PASS=${ES_PASS}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - INDEX_PATTERN=erp-*
+      - VECTOR_BATCH_SIZE=${VECTOR_BATCH_SIZE:-50}
+      - SLEEP=${VECTOR_SLEEP:-5}
+      - ES_WAIT_TIMEOUT=180
+      - REQUESTS_TIMEOUT=30
+      - MAX_RETRIES=5
     volumes:
-      - ./data/import:/data/import:rw
       - ./scripts:/scripts:ro
+      - ./logs/vector:/logs:rw
     working_dir: /scripts
     command: >
       bash -c "
-        pip install --no-cache-dir opencc-python-reimplemented requests pandas &&
-        python auto_importer.py
+        pip install --no-cache-dir openai requests numpy &&
+        python vector_service.py 2>&1 | tee -a /logs/vector.log
       "
     restart: unless-stopped
     networks:
       - elastic
 
+# 後端 -> 用於偵測問題與回應
+  rag-api:
+    image: python:3.11-slim
+    container_name: rag-api
+    depends_on:
+      - elasticsearch
+      - vector-generator
+    environment:
+      - ES_URL=http://elasticsearch:9200
+      - ES_USER=${ES_USER}
+      - ES_PASS=${ES_PASS}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - GPT_MODEL=${GPT_MODEL}
+    ports:
+      - "8010:8010"  # FastAPI 服務
+    volumes:
+      - ./scripts:/scripts:ro
+    working_dir: /scripts
+    command: >
+      bash -c "
+        pip install --no-cache-dir opencc-python-reimplemented openai requests fastapi uvicorn[standard] &&
+        python rag_api.py
+      "
+    healthcheck:
+      test: [
+        "CMD",
+        "python",
+        "-c",
+        "import urllib.request,sys; \
+        urllib.request.urlopen('http://localhost:8010/health', timeout=5).read(); \
+        sys.exit(0)"
+      ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - elastic
+
+# 資料庫設定
+  mysql:
+    image: mysql:8.0
+    container_name: mysql3316
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=fuhsin_erp_demo
+      - MYSQL_CHARACTER_SET=utf8mb4
+      - MYSQL_COLLATION=utf8mb4_unicode_ci
+    ports:
+      - "3316:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d:ro
+      - ./sql:/data/sql_import:rw
+      - mysql_data:/var/lib/mysql
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time-zone='+08:00'
+      --max_connections=1000
+      --max_allowed_packet=64M
+      --innodb_buffer_pool_size=2G
+      --innodb_log_file_size=256M
+      --innodb_flush_log_at_trx_commit=2
+      --innodb_flush_method=O_DIRECT
+      --innodb_file_per_table=1
+      --slow_query_log=1
+      --long_query_time=2
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -proot | grep 'mysqld is alive'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - elastic
+
+# 自動檔案處理服務
+  mysql_auto_importer:
+    image: python:3.11-slim
+    container_name: mysql_auto_importer
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      # MySQL 連線設定（可從 .env 帶入）
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=fuhsin_erp_demo
+      # 監控目錄與掃描頻率
+      - SQL_WATCH_DIR=/mnt/sql/incoming
+      - SCAN_INTERVAL=${SQL_SCAN_INTERVAL:-10}
+      - SQL_BATCH_SIZE=${SQL_BATCH_SIZE:-1000}
+      - MAX_RETRY=3
+      - POOL_SIZE=5
+    volumes:
+      - ./scripts:/app/scripts:ro        # 放你的 mysql_auto_importer.py
+      - ./sql:/mnt/sql                   # 掛載 SQL 資料夾（請在 ./sql 建 incoming/ .done/ .error/）
+      - ./state:/scripts                 # 狀態檔持久化（.import_state.json）
+      - ./logs/importer:/logs:rw
+    working_dir: /app
+    command: >
+      bash -lc "pip install --no-cache-dir -r scripts/requirements.txt &&
+                python scripts/mysql_auto_importer.py 2>&1 | tee -a /logs/importer/auto_importer.log"
+    restart: unless-stopped
+    networks:
+      - elastic
   
+  # 將資料表中資料同步至 ES
+  db-sync:
+    image: python:3.11-slim
+    container_name: db-sync-2
+    depends_on:
+      mysql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      # 資料庫（SQLAlchemy DSN；統一用 utf8mb4）
+      - DB_URL=mysql+pymysql://root:root@mysql:3306/fuhsin_erp_demo?charset=utf8mb4
+      # ES 連線
+      - ES_URL=http://elasticsearch:9200
+      - ES_USER=elastic
+      - ES_PASS=${ES_PASS}
+      # 批次與輪詢
+      - BATCH_SIZE=${DB_BATCH_SIZE:-1000}
+      - PAGE_SIZE=${DB_PAGE_SIZE:-3000}
+      - PARALLEL_THREADS=${PARALLEL_THREADS:-4}
+      - SLEEP_SECONDS=${DB_SYNC_INTERVAL:-30}
+    volumes:
+      - ./scripts:/app/scripts:ro        # 放你的 db-sync-2.py
+      - ./state:/scripts                 # 狀態檔持久化（.sync_state.json）
+      - ./logs/db-sync-2:/logs:rw
+    working_dir: /app
+    command: >
+      bash -lc "pip install --no-cache-dir -r scripts/requirements.txt &&
+                python scripts/db-sync-2.py 2>&1 | tee -a /logs/db-sync-2/db_sync_2.log"
+    deploy:
+      resources:                        # 在 Swarm 模式會啟動, 單純 up 不會
+        limits:                         # 代表使用記憶體上限值
+          memory: 2G
+        reservations:
+          memory: 512M                  # 代表使用記憶體下限值
+    restart: unless-stopped
+    networks:
+      - elastic
+
+  # React 前端應用
+  # web-ui -> 部署用
+  web-ui:
+    profiles: ["prod"]
+    build: 
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: web-ui
+    depends_on:
+      rag-api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=/api       # VITE -> VITE_* ; REACT CRA -> REACT_APP_*
+    restart: unless-stopped
+    networks:
+      - elastic
+
+  # 開發：Vite dev server + HMR
+  web-ui-dev:
+    profiles: ["dev"]
+    image: node:20
+    working_dir: /app
+    # 掛載原始碼；另外掛一個匿名卷避免覆蓋容器內的 node_modules
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    ports:
+      - "5174:5174"
+    environment:
+      # 有些平台需要 polling 才能偵測檔案更動（WSL/Docker Desktop）
+      - CHOKIDAR_USEPOLLING=true
+      - VITE_PROXY_TARGET=http://rag-api:8010  
+      - VITE_HOST=0.0.0.0
+    # 安裝依賴後啟動 dev server；--host 讓外部（你的瀏覽器）可訪問
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5174"
+    networks:
+      - elastic
+
+
 volumes:
   es_data:
     driver: local
@@ -139,6 +343,8 @@ volumes:
       type: none
       o: bind
       device: ./data/kibana
+  mysql_data:
+    driver: local
 
 networks:
   elastic:

@@ -1,0 +1,2 @@
+/scripts/sql_smart_importer.py:296: DeprecationWarning: Passing transport options in the API method is deprecated. Use 'Elasticsearch.options()' instead.
+  for ok, info in helpers.streaming_bulk(CACHED_ES, actions, chunk_size=CHUNK_SIZE, request_timeout=120):

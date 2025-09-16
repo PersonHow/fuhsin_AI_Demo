@@ -1,0 +1,854 @@
+2025-09-16 06:55:36,388 - __main__ - INFO - ============================================================
+2025-09-16 06:55:36,388 - __main__ - INFO - 🚀 MySQL to Elasticsearch 直接同步服務啟動
+2025-09-16 06:55:36,389 - __main__ - INFO - 📊 配置: BATCH=1000, PAGE=3000, THREADS=4
+2025-09-16 06:55:36,389 - __main__ - INFO - ============================================================
+2025-09-16 06:55:36,431 - __main__ - INFO - 📦 載入 35 個產品到快取
+2025-09-16 06:55:36,431 - __main__ - INFO - 📥 首次執行，開始全量同步...
+2025-09-16 06:55:36,432 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 初始同步
+2025-09-16 06:55:36,439 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.008s]
+2025-09-16 06:55:36,519 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.079s]
+2025-09-16 06:55:36,522 - __main__ - INFO - 📊 product_master_a: 取得第 1-35 筆資料
+2025-09-16 06:55:36,717 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.165s]
+2025-09-16 06:55:36,725 - __main__ - INFO - ✅ product_master_a: 成功 35 筆, 失敗 0 筆, 更新到 2025-09-15 16:09:22
+2025-09-16 06:55:36,726 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 初始同步
+2025-09-16 06:55:36,729 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.003s]
+2025-09-16 06:55:36,766 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.037s]
+2025-09-16 06:55:36,773 - __main__ - INFO - 📊 product_warehouse_b: 取得第 1-36 筆資料
+2025-09-16 06:55:36,838 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.060s]
+2025-09-16 06:55:36,841 - __main__ - INFO - ✅ product_warehouse_b: 成功 36 筆, 失敗 0 筆, 更新到 2025-09-15 16:09:22
+2025-09-16 06:55:36,841 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 初始同步
+2025-09-16 06:55:36,843 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.002s]
+2025-09-16 06:55:36,901 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.058s]
+2025-09-16 06:55:36,909 - __main__ - INFO - 📊 customer_complaint_c: 取得第 1-30 筆資料
+2025-09-16 06:55:37,374 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.456s]
+2025-09-16 06:55:37,379 - __main__ - INFO - ✅ customer_complaint_c: 成功 30 筆, 失敗 0 筆, 更新到 2025-09-15 16:09:22
+2025-09-16 06:55:42,387 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:55:42,401 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 06:55:42,404 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.002s]
+2025-09-16 06:55:42,415 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 06:55:42,415 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:55:42,417 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 06:55:42,418 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 06:55:42,420 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 06:55:42,420 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:55:42,421 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 06:55:42,422 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 06:55:42,424 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 06:55:42,424 - __main__ - INFO - 💤 無新資料，等待 30 秒...
+2025-09-16 06:56:12,427 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:56:12,440 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 06:56:12,444 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 06:56:12,465 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 06:56:12,465 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:56:12,467 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 06:56:12,469 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 06:56:12,471 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 06:56:12,471 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:56:12,473 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 06:56:12,474 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 06:56:12,476 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 06:56:12,477 - __main__ - INFO - 💤 無新資料，等待 30 秒...
+2025-09-16 06:56:42,501 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:56:42,511 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 06:56:42,515 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 06:56:42,529 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 06:56:42,529 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:56:42,532 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 06:56:42,534 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 06:56:42,536 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 06:56:42,536 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:56:42,538 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 06:56:42,539 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 06:56:42,541 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 06:56:42,541 - __main__ - INFO - 💤 無新資料，等待 30 秒...
+2025-09-16 06:57:12,545 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:57:12,564 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 06:57:12,570 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 06:57:12,588 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 06:57:12,588 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:57:12,590 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 06:57:12,592 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 06:57:12,594 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 06:57:12,594 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:57:12,596 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 06:57:12,597 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 06:57:12,599 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 06:57:12,599 - __main__ - INFO - 💤 無新資料，等待 30 秒...
+2025-09-16 06:57:42,604 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:57:42,611 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 06:57:42,618 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.006s]
+2025-09-16 06:57:42,622 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 06:57:42,622 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:57:42,625 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 06:57:42,628 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 06:57:42,630 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 06:57:42,630 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:57:42,632 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 06:57:42,634 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.002s]
+2025-09-16 06:57:42,636 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 06:57:42,637 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 06:58:42,657 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:58:42,668 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 06:58:42,674 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.006s]
+2025-09-16 06:58:42,686 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 06:58:42,686 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:58:42,688 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 06:58:42,689 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 06:58:42,691 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 06:58:42,691 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:58:42,692 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 06:58:42,693 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 06:58:42,695 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 06:58:42,695 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 06:59:42,709 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:59:42,717 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 06:59:42,723 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 06:59:42,731 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 06:59:42,731 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:59:42,733 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 06:59:42,736 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 06:59:42,737 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 06:59:42,738 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 06:59:42,739 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 06:59:42,740 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 06:59:42,741 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 06:59:42,741 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 07:00:42,762 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:00:42,772 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 07:00:42,776 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 07:00:42,794 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:00:42,795 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:00:42,796 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:00:42,797 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:00:42,799 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:00:42,799 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:00:42,800 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:00:42,801 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:00:42,802 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:00:42,802 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 07:01:42,820 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:01:42,835 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.009s]
+2025-09-16 07:01:42,839 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 07:01:42,852 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:01:42,853 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:01:42,854 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:01:42,856 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 07:01:42,858 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:01:42,858 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:01:42,860 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.002s]
+2025-09-16 07:01:42,862 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.002s]
+2025-09-16 07:01:42,864 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:01:42,865 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 07:02:42,875 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:02:42,883 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 07:02:42,890 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 07:02:42,897 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:02:42,898 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:02:42,899 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 07:02:42,901 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 07:02:42,903 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:02:42,904 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:02:42,905 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:02:42,906 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:02:42,908 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:02:42,908 - __main__ - INFO - 💤 無新資料，等待 90 秒...
+2025-09-16 07:04:12,919 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:04:12,926 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 07:04:12,932 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 07:04:12,938 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:04:12,939 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:04:12,940 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:04:12,942 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:04:12,944 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:04:12,944 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:04:12,945 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:04:12,946 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:04:12,948 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:04:12,948 - __main__ - INFO - 💤 無新資料，等待 90 秒...
+2025-09-16 07:05:42,954 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:05:42,962 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 07:05:42,968 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 07:05:42,971 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:05:42,971 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:05:42,974 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 07:05:42,976 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 07:05:42,978 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:05:42,978 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:05:42,980 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:05:42,982 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.002s]
+2025-09-16 07:05:42,984 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:05:42,984 - __main__ - INFO - 💤 無新資料，等待 90 秒...
+2025-09-16 07:07:13,000 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:07:13,008 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.004s]
+2025-09-16 07:07:13,012 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 07:07:13,022 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:07:13,023 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:07:13,025 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 07:07:13,026 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 07:07:13,028 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:07:13,028 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:07:13,030 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:07:13,031 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:07:13,032 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:07:13,032 - __main__ - INFO - 💤 無新資料，等待 90 秒...
+2025-09-16 07:08:43,037 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:08:43,044 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 07:08:43,050 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 07:08:43,054 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:08:43,054 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:08:43,056 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 07:08:43,058 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 07:08:43,060 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:08:43,060 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:08:43,061 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:08:43,063 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.002s]
+2025-09-16 07:08:43,065 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:08:43,065 - __main__ - INFO - 💤 無新資料，等待 90 秒...
+2025-09-16 07:10:13,082 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:10:13,093 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.007s]
+2025-09-16 07:10:13,097 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 07:10:13,112 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:10:13,112 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:10:13,113 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:10:13,115 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:10:13,117 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:10:13,117 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:10:13,118 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:10:13,119 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:10:13,121 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:10:13,121 - __main__ - INFO - 💤 無新資料，等待 120 秒...
+2025-09-16 07:12:13,156 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:12:13,166 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 07:12:13,172 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 07:12:13,197 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:12:13,197 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:12:13,198 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:12:13,200 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:12:13,201 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:12:13,201 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:12:13,202 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:12:13,203 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:12:13,205 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:12:13,205 - __main__ - INFO - 💤 無新資料，等待 120 秒...
+2025-09-16 07:14:13,215 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:14:13,223 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.003s]
+2025-09-16 07:14:13,226 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 07:14:13,238 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:14:13,239 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:14:13,240 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:14:13,242 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:14:13,243 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:14:13,243 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:14:13,245 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:14:13,250 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.002s]
+2025-09-16 07:14:13,252 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:14:13,252 - __main__ - INFO - 💤 無新資料，等待 120 秒...
+2025-09-16 07:16:13,274 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:16:13,283 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 07:16:13,289 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 07:16:13,300 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:16:13,300 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:16:13,301 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:16:13,303 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:16:13,305 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:16:13,305 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:16:13,306 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:16:13,307 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:16:13,308 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:16:13,309 - __main__ - INFO - 💤 無新資料，等待 120 秒...
+2025-09-16 07:18:13,329 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:18:13,338 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 07:18:13,346 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.007s]
+2025-09-16 07:18:13,357 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:18:13,358 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:18:13,359 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 07:18:13,361 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 07:18:13,364 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:18:13,364 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:18:13,365 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:18:13,367 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:18:13,369 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:18:13,369 - __main__ - INFO - 💤 無新資料，等待 120 秒...
+2025-09-16 07:20:13,386 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:20:13,398 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.004s]
+2025-09-16 07:20:13,404 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 07:20:13,415 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:20:13,415 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:20:13,417 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:20:13,419 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:20:13,421 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:20:13,421 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:20:13,422 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:20:13,424 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:20:13,518 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:20:13,518 - __main__ - INFO - 💤 無新資料，等待 150 秒...
+2025-09-16 07:22:43,536 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:22:43,549 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.008s]
+2025-09-16 07:22:43,554 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 07:22:43,569 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:22:43,569 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:22:43,570 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:22:43,572 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 07:22:43,575 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:22:43,575 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:22:43,576 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:22:43,577 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:22:43,579 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:22:43,579 - __main__ - INFO - 💤 無新資料，等待 150 秒...
+2025-09-16 07:25:13,609 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:25:13,618 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 07:25:13,623 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 07:25:13,634 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:25:13,635 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:25:13,636 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:25:13,638 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:25:13,640 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:25:13,640 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:25:13,641 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:25:13,642 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:25:13,644 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:25:13,644 - __main__ - INFO - 💤 無新資料，等待 150 秒...
+2025-09-16 07:27:43,660 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:27:43,672 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.007s]
+2025-09-16 07:27:43,682 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.010s]
+2025-09-16 07:27:43,694 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:27:43,694 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:27:43,696 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:27:43,697 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:27:43,699 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:27:43,699 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:27:43,700 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:27:43,701 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:27:43,703 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:27:43,703 - __main__ - INFO - 💤 無新資料，等待 150 秒...
+2025-09-16 07:30:13,724 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:30:13,735 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.007s]
+2025-09-16 07:30:13,741 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.006s]
+2025-09-16 07:30:13,753 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:30:13,754 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:30:13,755 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 07:30:13,758 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.003s]
+2025-09-16 07:30:13,761 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:30:13,761 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:30:13,762 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:30:13,765 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.002s]
+2025-09-16 07:30:13,767 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:30:13,767 - __main__ - INFO - 💤 無新資料，等待 150 秒...
+2025-09-16 07:32:43,783 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:32:43,793 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 07:32:43,799 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 07:32:43,823 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:32:43,823 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:32:43,825 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:32:43,826 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:32:43,828 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:32:43,828 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:32:43,830 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:32:43,843 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.010s]
+2025-09-16 07:32:43,846 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:32:43,847 - __main__ - INFO - 💤 無新資料，等待 180 秒...
+2025-09-16 07:35:43,860 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:35:43,874 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.008s]
+2025-09-16 07:35:43,878 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 07:35:43,886 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:35:43,886 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:35:43,888 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:35:43,889 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:35:43,890 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:35:43,890 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:35:43,891 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:35:43,892 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:35:43,894 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:35:43,894 - __main__ - INFO - 💤 無新資料，等待 180 秒...
+2025-09-16 07:38:43,936 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:38:43,942 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.003s]
+2025-09-16 07:38:43,946 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 07:38:43,960 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:38:43,960 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:38:43,962 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:38:43,963 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:38:43,965 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:38:43,965 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:38:43,966 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:38:43,967 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:38:43,969 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:38:43,969 - __main__ - INFO - 💤 無新資料，等待 180 秒...
+2025-09-16 07:41:43,987 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:41:43,998 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 07:41:44,003 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 07:41:44,017 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:41:44,017 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:41:44,018 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:41:44,020 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:41:44,022 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:41:44,022 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:41:44,023 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:41:44,024 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:41:44,025 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:41:44,025 - __main__ - INFO - 💤 無新資料，等待 180 秒...
+2025-09-16 07:44:44,046 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:44:44,054 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 07:44:44,058 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 07:44:44,075 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:44:44,075 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:44:44,077 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:44:44,078 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:44:44,079 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:44:44,080 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:44:44,081 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:44:44,082 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:44:44,083 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:44:44,083 - __main__ - INFO - 💤 無新資料，等待 180 秒...
+2025-09-16 07:47:44,105 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:47:44,114 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 07:47:44,124 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.009s]
+2025-09-16 07:47:44,150 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:47:44,150 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:47:44,151 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:47:44,152 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:47:44,153 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:47:44,153 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:47:44,154 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:47:44,155 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:47:44,156 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:47:44,157 - __main__ - INFO - 💤 無新資料，等待 210 秒...
+2025-09-16 07:55:59,430 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:55:59,438 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 07:55:59,446 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.007s]
+2025-09-16 07:55:59,457 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:55:59,457 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:55:59,458 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:55:59,460 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:55:59,461 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:55:59,462 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:55:59,463 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:55:59,464 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:55:59,466 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:55:59,466 - __main__ - INFO - 💤 無新資料，等待 210 秒...
+2025-09-16 07:59:29,492 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:59:29,502 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 07:59:29,511 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.008s]
+2025-09-16 07:59:29,523 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 07:59:29,523 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:59:29,524 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 07:59:29,526 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 07:59:29,528 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 07:59:29,528 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 07:59:29,529 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 07:59:29,530 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 07:59:29,531 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 07:59:29,531 - __main__ - INFO - 💤 無新資料，等待 210 秒...
+2025-09-16 08:02:59,550 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:02:59,564 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.009s]
+2025-09-16 08:02:59,570 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 08:02:59,582 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:02:59,582 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:02:59,584 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:02:59,585 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:02:59,587 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:02:59,587 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:02:59,588 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:02:59,590 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:02:59,592 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:02:59,592 - __main__ - INFO - 💤 無新資料，等待 210 秒...
+2025-09-16 08:06:29,625 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:06:29,631 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.004s]
+2025-09-16 08:06:29,637 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 08:06:29,649 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:06:29,649 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:06:29,651 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:06:29,652 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:06:29,654 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:06:29,654 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:06:29,656 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:06:29,657 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:06:29,659 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:06:29,659 - __main__ - INFO - 💤 無新資料，等待 210 秒...
+2025-09-16 08:09:59,686 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:09:59,694 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 08:09:59,698 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 08:09:59,713 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:09:59,714 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:09:59,715 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:09:59,717 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 08:09:59,720 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:09:59,720 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:09:59,722 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.002s]
+2025-09-16 08:09:59,726 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.004s]
+2025-09-16 08:09:59,729 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:09:59,729 - __main__ - INFO - 💤 無新資料，等待 240 秒...
+2025-09-16 08:13:59,751 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:13:59,760 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 08:13:59,771 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.010s]
+2025-09-16 08:13:59,780 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:13:59,780 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:13:59,782 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 08:13:59,783 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:13:59,785 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:13:59,785 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:13:59,786 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:13:59,787 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:13:59,789 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:13:59,789 - __main__ - INFO - 💤 無新資料，等待 240 秒...
+2025-09-16 08:17:59,810 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:17:59,822 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.007s]
+2025-09-16 08:17:59,829 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.007s]
+2025-09-16 08:17:59,840 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:17:59,840 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:17:59,841 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:17:59,843 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:17:59,844 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:17:59,844 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:17:59,845 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:17:59,846 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:17:59,849 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:17:59,849 - __main__ - INFO - 💤 無新資料，等待 240 秒...
+2025-09-16 08:21:59,868 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:21:59,877 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 08:21:59,883 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 08:21:59,893 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:21:59,894 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:21:59,895 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:21:59,897 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 08:21:59,899 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:21:59,899 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:21:59,900 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:21:59,901 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:21:59,902 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:21:59,903 - __main__ - INFO - 💤 無新資料，等待 240 秒...
+2025-09-16 08:25:59,924 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:25:59,937 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.007s]
+2025-09-16 08:25:59,944 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.006s]
+2025-09-16 08:25:59,956 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:25:59,956 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:25:59,957 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:25:59,958 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:25:59,960 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:25:59,960 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:25:59,961 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:25:59,962 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:25:59,963 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:25:59,963 - __main__ - INFO - 💤 無新資料，等待 240 秒...
+2025-09-16 08:29:59,993 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:30:00,008 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.011s]
+2025-09-16 08:30:00,014 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 08:30:00,045 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:30:00,046 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:30:00,047 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:30:00,050 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.003s]
+2025-09-16 08:30:00,053 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:30:00,053 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:30:00,055 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:30:00,057 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.002s]
+2025-09-16 08:30:00,059 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:30:00,059 - __main__ - INFO - 💤 無新資料，等待 270 秒...
+2025-09-16 08:34:30,081 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:34:30,092 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.007s]
+2025-09-16 08:34:30,096 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 08:34:30,107 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:34:30,107 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:34:30,109 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:34:30,110 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:34:30,112 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:34:30,112 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:34:30,113 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:34:30,114 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:34:30,117 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:34:30,117 - __main__ - INFO - 💤 無新資料，等待 270 秒...
+2025-09-16 08:39:00,139 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:39:00,149 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 08:39:00,155 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 08:39:00,170 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:39:00,171 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:39:00,172 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:39:00,173 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:39:00,175 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:39:00,175 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:39:00,176 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:39:00,177 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:39:00,178 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:39:00,178 - __main__ - INFO - 💤 無新資料，等待 270 秒...
+2025-09-16 08:43:30,205 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:43:30,215 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 08:43:30,225 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.008s]
+2025-09-16 08:43:30,239 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:43:30,240 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:43:30,241 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:43:30,243 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 08:43:30,245 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:43:30,245 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:43:30,246 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:43:30,247 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:43:30,249 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:43:30,249 - __main__ - INFO - 💤 無新資料，等待 270 秒...
+2025-09-16 08:48:00,277 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:48:00,286 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.004s]
+2025-09-16 08:48:00,291 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 08:48:00,302 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:48:00,302 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:48:00,304 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:48:00,305 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:48:00,307 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:48:00,307 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:48:00,309 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:48:00,310 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:48:00,311 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:48:00,311 - __main__ - INFO - 💤 無新資料，等待 270 秒...
+2025-09-16 08:52:30,328 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:52:30,339 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 08:52:30,345 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.006s]
+2025-09-16 08:52:30,379 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:52:30,379 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:52:30,380 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:52:30,381 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:52:30,383 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:52:30,383 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:52:30,384 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:52:30,385 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:52:30,387 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:52:30,387 - __main__ - INFO - 💤 無新資料，等待 300 秒...
+2025-09-16 08:57:30,414 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:57:30,423 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 08:57:30,428 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 08:57:30,440 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 08:57:30,440 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:57:30,441 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 08:57:30,443 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 08:57:30,444 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 08:57:30,445 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 08:57:30,445 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 08:57:30,446 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 08:57:30,448 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 08:57:30,448 - __main__ - INFO - 💤 無新資料，等待 300 秒...
+2025-09-16 09:02:30,469 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:02:30,479 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 09:02:30,486 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.006s]
+2025-09-16 09:02:30,497 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:02:30,497 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:02:30,498 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 09:02:30,500 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 09:02:30,504 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:02:30,504 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:02:30,505 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:02:30,506 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:02:30,513 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:02:30,513 - __main__ - INFO - 💤 無新資料，等待 300 秒...
+2025-09-16 09:07:30,535 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:07:30,550 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.010s]
+2025-09-16 09:07:30,559 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.008s]
+2025-09-16 09:07:30,576 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:07:30,576 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:07:30,577 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 09:07:30,579 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 09:07:30,580 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:07:30,580 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:07:30,581 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:07:30,583 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:07:30,584 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:07:30,584 - __main__ - INFO - 💤 無新資料，等待 300 秒...
+2025-09-16 09:12:30,606 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:12:30,620 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.007s]
+2025-09-16 09:12:30,627 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.006s]
+2025-09-16 09:12:30,645 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:12:30,645 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:12:30,647 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 09:12:30,649 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 09:12:30,651 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:12:30,652 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:12:30,654 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:12:30,655 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:12:30,657 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:12:30,657 - __main__ - INFO - 💤 無新資料，等待 300 秒...
+2025-09-16 09:20:54,372 - __main__ - INFO - ============================================================
+2025-09-16 09:20:54,374 - __main__ - INFO - 🚀 MySQL to Elasticsearch 直接同步服務啟動
+2025-09-16 09:20:54,374 - __main__ - INFO - 📊 配置: BATCH=1000, PAGE=3000, THREADS=4
+2025-09-16 09:20:54,374 - __main__ - INFO - ============================================================
+2025-09-16 09:20:54,409 - __main__ - INFO - 📦 載入 35 個產品到快取
+2025-09-16 09:20:54,409 - __main__ - INFO - 📥 首次執行，開始全量同步...
+2025-09-16 09:20:54,409 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 初始同步
+2025-09-16 09:20:54,414 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 09:20:54,418 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 09:20:54,421 - __main__ - INFO - 📊 product_master_a: 取得第 1-35 筆資料
+2025-09-16 09:20:54,514 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.057s]
+2025-09-16 09:20:54,517 - __main__ - INFO - ✅ product_master_a: 成功 35 筆, 失敗 0 筆, 更新到 2025-09-15 16:09:22
+2025-09-16 09:20:54,518 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 初始同步
+2025-09-16 09:20:54,520 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 09:20:54,522 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 09:20:54,525 - __main__ - INFO - 📊 product_warehouse_b: 取得第 1-36 筆資料
+2025-09-16 09:20:54,551 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.023s]
+2025-09-16 09:20:54,553 - __main__ - INFO - ✅ product_warehouse_b: 成功 36 筆, 失敗 0 筆, 更新到 2025-09-15 16:09:22
+2025-09-16 09:20:54,553 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 初始同步
+2025-09-16 09:20:54,555 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:20:54,556 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:20:54,559 - __main__ - INFO - 📊 customer_complaint_c: 取得第 1-30 筆資料
+2025-09-16 09:20:54,583 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.021s]
+2025-09-16 09:20:54,586 - __main__ - INFO - ✅ customer_complaint_c: 成功 30 筆, 失敗 0 筆, 更新到 2025-09-15 16:09:22
+2025-09-16 09:20:59,587 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:20:59,594 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.004s]
+2025-09-16 09:20:59,598 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 09:20:59,602 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:20:59,603 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:20:59,605 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 09:20:59,607 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 09:20:59,612 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:20:59,612 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:20:59,616 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.003s]
+2025-09-16 09:20:59,618 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.002s]
+2025-09-16 09:20:59,620 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:20:59,620 - __main__ - INFO - 💤 無新資料，等待 30 秒...
+2025-09-16 09:21:29,622 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:21:29,643 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.015s]
+2025-09-16 09:21:29,647 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 09:21:29,661 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:21:29,662 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:21:29,663 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 09:21:29,665 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 09:21:29,666 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:21:29,667 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:21:29,668 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:21:29,669 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:21:29,670 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:21:29,670 - __main__ - INFO - 💤 無新資料，等待 30 秒...
+2025-09-16 09:21:59,696 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:21:59,701 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.004s]
+2025-09-16 09:21:59,704 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.002s]
+2025-09-16 09:21:59,715 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:21:59,716 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:21:59,717 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 09:21:59,719 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 09:21:59,720 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:21:59,721 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:21:59,722 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:21:59,723 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:21:59,724 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:21:59,724 - __main__ - INFO - 💤 無新資料，等待 30 秒...
+2025-09-16 09:22:29,726 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:22:29,753 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.008s]
+2025-09-16 09:22:29,757 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 09:22:29,770 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:22:29,771 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:22:29,773 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 09:22:29,775 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 09:22:29,776 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:22:29,776 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:22:29,777 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:22:29,779 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:22:29,780 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:22:29,780 - __main__ - INFO - 💤 無新資料，等待 30 秒...
+2025-09-16 09:22:59,820 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:22:59,831 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.008s]
+2025-09-16 09:22:59,836 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 09:22:59,846 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:22:59,846 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:22:59,848 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 09:22:59,850 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 09:22:59,851 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:22:59,851 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:22:59,852 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:22:59,854 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:22:59,855 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:22:59,855 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 09:23:59,876 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:23:59,888 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.008s]
+2025-09-16 09:23:59,892 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 09:23:59,905 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:23:59,905 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:23:59,906 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 09:23:59,908 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 09:23:59,909 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:23:59,910 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:23:59,911 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:23:59,912 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:23:59,914 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:23:59,914 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 09:24:59,932 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:24:59,940 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 09:24:59,944 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 09:24:59,959 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:24:59,959 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:24:59,961 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 09:24:59,963 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 09:24:59,965 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:24:59,965 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:24:59,966 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:24:59,968 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:24:59,970 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:24:59,970 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 09:26:00,003 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:26:00,021 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 09:26:00,025 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 09:26:00,040 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:26:00,040 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:26:00,041 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 09:26:00,043 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 09:26:00,045 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:26:00,045 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:26:00,047 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:26:00,048 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:26:00,050 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:26:00,050 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 09:27:00,069 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:27:00,083 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.010s]
+2025-09-16 09:27:00,090 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 09:27:00,100 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:27:00,100 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:27:00,102 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 09:27:00,103 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 09:27:00,105 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:27:00,105 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:27:00,106 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:27:00,107 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:27:00,108 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:27:00,109 - __main__ - INFO - 💤 無新資料，等待 60 秒...
+2025-09-16 09:28:00,132 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:28:00,141 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.006s]
+2025-09-16 09:28:00,147 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.005s]
+2025-09-16 09:28:00,162 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:28:00,163 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:28:00,164 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-16 09:28:00,166 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 09:28:00,168 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:28:00,168 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:28:00,169 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:28:00,170 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:28:00,172 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:28:00,172 - __main__ - INFO - 💤 無新資料，等待 90 秒...
+2025-09-16 09:29:30,212 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:29:30,218 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.004s]
+2025-09-16 09:29:30,222 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.003s]
+2025-09-16 09:29:30,230 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:29:30,230 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:29:30,232 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 09:29:30,233 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 09:29:30,235 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:29:30,235 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:29:30,236 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:29:30,237 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:29:30,239 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:29:30,239 - __main__ - INFO - 💤 無新資料，等待 90 秒...
+2025-09-16 09:31:00,255 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:31:00,264 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 09:31:00,269 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 09:31:00,280 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:31:00,281 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:31:00,282 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 09:31:00,283 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.001s]
+2025-09-16 09:31:00,285 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:31:00,285 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:31:00,286 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:31:00,288 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:31:00,289 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:31:00,289 - __main__ - INFO - 💤 無新資料，等待 90 秒...
+2025-09-16 09:32:30,306 - __main__ - INFO - 🔄 開始同步 product_master_a，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:32:30,315 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.005s]
+2025-09-16 09:32:30,319 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-products/_settings [status:200 duration:0.004s]
+2025-09-16 09:32:30,331 - __main__ - INFO - 💤 product_master_a: 無新資料
+2025-09-16 09:32:30,331 - __main__ - INFO - 🔄 開始同步 product_warehouse_b，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:32:30,333 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.001s]
+2025-09-16 09:32:30,335 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-warehouse/_settings [status:200 duration:0.002s]
+2025-09-16 09:32:30,339 - __main__ - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-16 09:32:30,339 - __main__ - INFO - 🔄 開始同步 customer_complaint_c，起始時間: 2025-09-15 16:09:22
+2025-09-16 09:32:30,340 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-16 09:32:30,342 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/erp-complaints/_settings [status:200 duration:0.001s]
+2025-09-16 09:32:30,343 - __main__ - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-16 09:32:30,343 - __main__ - INFO - 💤 無新資料，等待 90 秒...
