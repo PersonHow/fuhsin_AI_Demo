@@ -146,7 +146,7 @@
                 align-items: center;
                 border-bottom: 1px solid #e0e0e0;
 
-                .result-title {
+                .result-title-bar {
                     display: flex;
                     align-items: center;
                     gap: 12px;
@@ -156,22 +156,22 @@
                     .result-number {
                         background: #667eea;
                         color: white;
-                        width: 28px;
-                        height: 28px;
+                        width: 35px;
+                        height: 35px;
                         border-radius: 50%;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 14px;
+                        font-size: 18px;
                         font-weight: 600;
                     }
 
-                    .table-badge {
+                    .header-info {
                         background: #28a745;
                         color: white;
                         padding: 4px 12px;
-                        border-radius: 16px;
-                        font-size: 12px;
+                        border-radius: 10px;
+                        font-size: 15px;
                         font-weight: 500;
                     }
 
@@ -181,14 +181,15 @@
                         font-weight: 500;
                     }
 
-                    .score {
-                        margin-left: auto;
-                        color: #6c757d;
-                        font-size: 13px;
-                        padding: 4px 8px;
-                        background: rgba(0, 0, 0, 0.05);
-                        border-radius: 4px;
-                    }
+                }
+                .score {
+                    margin-left: auto;
+                    color: #6c757d;
+                    font-size: 13px;
+                    padding: 4px 8px;
+                    background: rgba(0, 0, 0, 0.05);
+                    border-radius: 4px;
+                    margin: 0 5px;
                 }
 
                 .expand-button {
@@ -229,27 +230,26 @@
             }
 
             // 簡短摘要
-            .result-summary {
+            .result-preview {
                 padding: 16px 20px;
 
-                .summary-item {
+                .preview-label {
                     display: inline-block;
                     background: #e7f3ff;
                     color: #0066cc;
                     padding: 4px 12px;
                     border-radius: 16px;
                     margin: 4px;
-                    font-size: 13px;
-                    font-weight: 500;
+                    font-size: 16px;
+                    font-weight: 700;
                 }
 
-                .brief-highlight {
+                .preview-text{
                     margin-top: 12px;
                     padding: 12px;
                     background: #f8f9fa;
-                    border-left: 3px solid #667eea;
                     border-radius: 4px;
-                    font-size: 14px;
+                    font-size: 16px;
                     line-height: 1.6;
 
                     strong {
@@ -272,7 +272,7 @@
                 padding: 20px;
                 background: #fafbfc;
 
-                .field-group {
+                .detail-group {
                     margin-bottom: 24px;
 
                     &:last-child {
@@ -317,9 +317,6 @@
                 }
 
                 .highlight-section {
-                    margin-top: 24px;
-                    padding-top: 24px;
-                    border-top: 2px solid #e0e0e0;
 
                     h4 {
                         color: #2c3e50;

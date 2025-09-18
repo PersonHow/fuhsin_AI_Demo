@@ -45,15 +45,10 @@ export default function SearchResults({ results, searchMode, useGPT }) {
 
         // 通用欄位
         'searchable_content': '內容',
-        'all_content': '全文內容'
+        'all_content': '全文內容',
+        'content':"內容"
     }
 
-    // 資料表名稱對應
-    const tableNameMapping = {
-        'erp-products': '產品主檔',
-        'erp-warehouse': '倉庫資料',
-        'erp-complaints': '客訴記錄'
-    }
 
     const toggleExpand = (index) => {
         const newExpanded = new Set(expandedItems)
@@ -65,16 +60,10 @@ export default function SearchResults({ results, searchMode, useGPT }) {
         setExpandedItems(newExpanded)
     }
 
-    // 取得資料表顯示名稱
-    const getTableDisplayName = (index) => {
-        return tableNameMapping[index] || index
-    }
-
     // 根據不同表格類型建立標題列資訊
     const buildHeaderInfo = (source, index) => {
         const data = source.metadata || {}
-        const tableName = getTableDisplayName(source.index)
-        const headerParts = [`來源：${tableName}`]
+        const headerParts = [`來源：${source.index}`]
         
         if (source.index === 'erp-complaints') {
             // 客訴記錄
@@ -110,17 +99,17 @@ export default function SearchResults({ results, searchMode, useGPT }) {
 
     // 取得主要描述內容
     const getMainDescription = (source) => {
-        const data = source._source || {}
+        const data = source || {}
         
         if (source.index === 'erp-complaints') {
-            return data.description || data.all_content || ''
+            return data.description || data.content || ''
         } else if (source.index === 'erp-warehouse') {
-            return data.special_notes || data.all_content || ''
+            return data.special_notes || data.content || ''
         } else if (source.index === 'erp-products') {
-            return data.all_content || ''
+            return data.content || ''
         }
         
-        return data.all_content || ''
+        return data.ontent || ''
     }
 
     // 取得詳細資訊（展開時顯示）
@@ -140,9 +129,9 @@ export default function SearchResults({ results, searchMode, useGPT }) {
                 details['問題描述'] = [{ label: '', value: data.description }]
             }
             
-            if (data.resolution_date || data.resolution_status) {
+            if (data.resolution_date || data.status) {
                 details['處理進度'] = []
-                if (data.resolution_status) details['處理進度'].push({ label: '處理狀態', value: data.resolution_status })
+                if (data.status) details['處理進度'].push({ label: '處理狀態', value: data.status })
                 if (data.resolution_date) details['處理進度'].push({ label: '解決日期', value: data.resolution_date })
             }
             
@@ -178,10 +167,14 @@ export default function SearchResults({ results, searchMode, useGPT }) {
         return text.split(/(<em>.*?<\/em>)/g).map((part, index) => {
             if (part.startsWith('<em>') && part.endsWith('</em>')) {
                 const content = part.slice(4, -5)
+                
                 return <mark key={index}>{content}</mark>
             }
+            console.log(part);
+            
             return part
         })
+        
     }
 
     return (
@@ -289,14 +282,15 @@ export default function SearchResults({ results, searchMode, useGPT }) {
                                     {/* 高亮內容（如果有） */}
                                     {source.highlights && Object.keys(source.highlights).length > 0 && (
                                         <div className="highlight-section">
-                                            <h4>相關片段</h4>
                                             {Object.entries(source.highlights).map(([field, values]) => (
+                                                (field == "searchable_content" ?
                                                 <div key={field} className="highlight-item">
-                                                    <strong>{fieldNameMapping[field] || field}:</strong>
+                                                    <h4>{fieldNameMapping[field] || field}:</h4>
                                                     {values.map((value, vIdx) => (
                                                         <p key={vIdx}>{toTW(renderHighlightedText(value))}</p>
                                                     ))}
                                                 </div>
+                                                :"")
                                             ))}
                                         </div>
                                     )}

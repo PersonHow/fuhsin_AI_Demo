@@ -26,7 +26,7 @@ WATCH_DIR = Path(os.getenv("SQL_WATCH_DIR", "/sql/incoming"))
 DONE_DIR = WATCH_DIR / ".done"
 ERROR_DIR = WATCH_DIR / ".error"
 PROGRESS_DIR = WATCH_DIR / ".progress"
-STATE_FILE = WATCH_DIR / ".import_state.json"
+STATE_FILE = PROGRESS_DIR /".import_state.json"
 LOG_FILE = Path("/logs/importer/mysql_importer.log")
 
 # 效能配置

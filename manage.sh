@@ -47,11 +47,11 @@ EOF
 # 建立必要目錄
 setup_dirs() {
     echo -e "${GREEN}📁 建立必要目錄...${NC}"
-    mkdir -p data/{elasticsearch,kibana,sql_import}
-    mkdir -p data/sql_import/{.done,.error,.progress}
+    mkdir -p data/{elasticsearch,kibana}
     mkdir -p logs/{elasticsearch,db-sync,importer,vector,api}
     mkdir -p scripts
-    mkdir -p sql
+    mkdir -p sql/incoming/{.done,.error,.progress}
+    mkdir -p sql/init
     mkdir -p web
     chmod -R 777 data logs  # 確保 Docker 容器可以寫入
 }

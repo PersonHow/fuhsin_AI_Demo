@@ -1079,7 +1079,9 @@ class RAGService:
         sources = []
         for hit in search_results.get("hits", {}).get("hits", []):
             source = hit["_source"]
-            customdata = source.get("metadata", {})
+            customdata = dict(source.get("metadata", {}))
+            customdata.setdefault("id", source.get("id"))
+            customdata.setdefault("title", source.get("title"))
             customdata["status"] = source.get("status")
             sources.append(
                 SearchResult(

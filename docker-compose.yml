@@ -1,3 +1,4 @@
+name: fuhsin_ai_demo
 services:
 # ElasticSearch settings
   elasticsearch:
@@ -180,8 +181,8 @@ services:
     ports:
       - "3316:3306"
     volumes:
-      - ./sql:/docker-entrypoint-initdb.d:ro
-      - ./sql:/data/sql_import:rw
+      - ./sql/init:/docker-entrypoint-initdb.d:ro
+      - ./sql/incoming:/data/sql_import:rw
       - mysql_data:/var/lib/mysql
     command: >
       --character-set-server=utf8mb4
@@ -320,12 +321,14 @@ services:
 
 volumes:
   es_data:
+    name: fuhsin_ai_demo_es_data
     driver: local
     driver_opts:
       type: none
       o: bind
       device: ./data/elasticsearch
   es_logs:
+    name: fuhsin_ai_demo_es_logs
     driver: local
     driver_opts:
       type: none
@@ -338,12 +341,14 @@ volumes:
   #     o: bind
   #     device: ./plugins/elasticsearch
   kibana_data:
+    name: fuhsin_ai_demo_kibana_data
     driver: local
     driver_opts:
       type: none
       o: bind
       device: ./data/kibana
   mysql_data:
+    name: fuhsin_ai_demo_mysql_data
     driver: local
 
 networks:
