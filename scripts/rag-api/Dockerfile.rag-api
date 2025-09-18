@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+WORKDIR /scripts
+
+# 先複製 requirements.txt 並安裝依賴（可利用快取）
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 複製腳本
+COPY rag_api.py .
+
+# 設定環境變數預設值 (非機密可在這，機密的放到 compose)
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8010
+
+
+# 預設啟動方式，依照 rag_api.py 裡面的設定
+
+    # 如果 有 `app = FastAPI()`，建議用 uvicorn 啟動：
+# CMD ["uvicorn", "rag_api:app", "--host", "0.0.0.0", "--port", "8000"]
+
+    # 如 rag_api.py 內直接呼叫 app.run() 或 uvicorn.run()：
+CMD ["python", "rag_api.py"]

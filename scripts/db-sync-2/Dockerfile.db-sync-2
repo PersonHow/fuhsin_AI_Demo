@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 先裝依賴（快取友好）
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 複製腳本
+COPY db-sync-2.py .
+
+ENV PYTHONUNBUFFERED=1
+
+# 批次/worker 不需要 EXPOSE
+CMD ["python", "db-sync-2.py"]

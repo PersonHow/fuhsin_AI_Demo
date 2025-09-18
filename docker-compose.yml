@@ -129,7 +129,9 @@ services:
 
 # 後端 -> 用於偵測問題與回應
   rag-api:
-    image: python:3.11-slim
+    build:
+      context: ./scripts/rag-api
+      dockerfile: Dockerfile.rag-api
     container_name: rag-api
     depends_on:
       - elasticsearch
@@ -145,13 +147,7 @@ services:
     ports:
       - "8010:8010"  # FastAPI 服務
     volumes:
-      - ./scripts:/scripts:ro
-    working_dir: /scripts
-    command: >
-      bash -c "
-        pip install --no-cache-dir opencc-python-reimplemented openai requests fastapi uvicorn[standard] &&
-        python rag_api.py
-      "
+      - ./scripts/rag-api:/scripts
     healthcheck:
       test: [
         "CMD",
@@ -169,7 +165,8 @@ services:
     networks:
       - elastic
 
-# 資料庫設定
+# ============== DataBase 相關 ==============
+  # 資料庫設定
   mysql:
     image: mysql:8.0
     container_name: mysql3316
@@ -206,42 +203,95 @@ services:
     networks:
       - elastic
 
-# 自動檔案處理服務
+  # 自動檔案處理服務
   mysql_auto_importer:
-    image: python:3.11-slim
+    build:
+      context: ./scripts/mysql_auto_importer
+      dockerfile: Dockerfile.mysql_auto_importer
     container_name: mysql_auto_importer
     depends_on:
       mysql:
         condition: service_healthy
     environment:
-      # MySQL 連線設定（可從 .env 帶入）
+    # MySQL 連線設定（可從 .env 帶入）
       - MYSQL_HOST=mysql
       - MYSQL_PORT=3306
       - MYSQL_USER=root
       - MYSQL_PASSWORD=root
       - MYSQL_DATABASE=fuhsin_erp_demo
-      # 監控目錄與掃描頻率
+    # 監控目錄與掃描頻率
       - SQL_WATCH_DIR=/mnt/sql/incoming
       - SCAN_INTERVAL=${SQL_SCAN_INTERVAL:-10}
       - SQL_BATCH_SIZE=${SQL_BATCH_SIZE:-1000}
       - MAX_RETRY=3
       - POOL_SIZE=5
     volumes:
-      - ./scripts:/app/scripts:ro        # 放你的 mysql_auto_importer.py
+      # - ./scripts/db:/app/scripts:ro        # 放你的 mysql_auto_importer.py
       - ./sql:/mnt/sql                   # 掛載 SQL 資料夾（請在 ./sql 建 incoming/ .done/ .error/）
       - ./state:/scripts                 # 狀態檔持久化（.import_state.json）
       - ./logs/importer:/logs:rw
     working_dir: /app
-    command: >
-      bash -lc "pip install --no-cache-dir -r scripts/requirements.txt &&
-                python scripts/mysql_auto_importer.py 2>&1 | tee -a /logs/importer/auto_importer.log"
+    # command: >
+    #   bash -lc "pip install --no-cache-dir -r scripts/db/requirements.txt &&
+    #             python scripts/db/mysql_auto_importer.py 2>&1 | tee -a /logs/importer/auto_importer.log"
     restart: unless-stopped
     networks:
       - elastic
   
+  pdf-processor:
+    build:
+      context: ./scripts/pdf_processor
+      dockerfile: Dockerfile.pdf_processor
+    container_name: pdf-processor
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+    # MySQL 連線設定（可從 .env 帶入）
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=fuhsin_erp_demo
+    
+    # PDF 處理設定
+      - PDF_WATCH_DIR=/mnt/pdf/incoming     # 監控目錄
+      - SCAN_INTERVAL=${PDF_SCAN_INTERVAL:-20}  # 掃描間隔（秒）
+      - PROCESS_BATCH_SIZE=${PDF_BATCH_SIZE:-3} # 每批處理檔案數
+      - ENABLE_OCR=${ENABLE_OCR:-true}         # 是否啟用 OCR
+      - OCR_LANG=chi_tra+eng                    # OCR 語言（繁體中文+英文）
+    
+    # 日誌設定
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    
+    volumes:
+      - ./scripts/pdf_processor:/app:ro
+      - ./pdf:/mnt/pdf
+      - ./state/pdf:/state
+      - ./logs/pdf:/logs:rw
+    working_dir: /app
+    restart: unless-stopped
+    networks:
+      - elastic
+    
+    # 資源限制（PDF 處理可能消耗較多記憶體）
+    mem_limit: 4g
+    cpus: '2.0'
+    
+    # 健康檢查
+    healthcheck:
+      test: ["CMD", "python", "-c", "import pymysql; pymysql.connect(host='mysql', user='root', password='root')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   # 將資料表中資料同步至 ES
   db-sync:
-    image: python:3.11-slim
+    build:
+      context: ./scripts/db-sync-2
+      dockerfile: Dockerfile.db-sync-2
     container_name: db-sync-2
     depends_on:
       mysql:
@@ -249,25 +299,25 @@ services:
       elasticsearch:
         condition: service_healthy
     environment:
-      # 資料庫（SQLAlchemy DSN；統一用 utf8mb4）
+    # 資料庫（SQLAlchemy DSN；統一用 utf8mb4）
       - DB_URL=mysql+pymysql://root:root@mysql:3306/fuhsin_erp_demo?charset=utf8mb4
-      # ES 連線
+    # ES 連線
       - ES_URL=http://elasticsearch:9200
       - ES_USER=elastic
       - ES_PASS=${ES_PASS}
-      # 批次與輪詢
+    # 批次與輪詢
       - BATCH_SIZE=${DB_BATCH_SIZE:-1000}
       - PAGE_SIZE=${DB_PAGE_SIZE:-3000}
       - PARALLEL_THREADS=${PARALLEL_THREADS:-4}
       - SLEEP_SECONDS=${DB_SYNC_INTERVAL:-30}
     volumes:
-      - ./scripts:/app/scripts:ro        # 放你的 db-sync-2.py
-      - ./state:/scripts                 # 狀態檔持久化（.sync_state.json）
+      # - ./scripts:/app/scripts:ro        # 放你的 db-sync-2.py
+      - ./state:/state                 # 狀態檔持久化（.sync_state.json）
       - ./logs/db-sync-2:/logs:rw
     working_dir: /app
-    command: >
-      bash -lc "pip install --no-cache-dir -r scripts/requirements.txt &&
-                python scripts/db-sync-2.py 2>&1 | tee -a /logs/db-sync-2/db_sync_2.log"
+    # command: >
+    #   bash -lc "pip install --no-cache-dir -r scripts/db/requirements.txt &&
+    #             python scripts/db/db-sync-2.py 2>&1 | tee -a /logs/db-sync-2/db_sync_2.log"
     deploy:
       resources:                        # 在 Swarm 模式會啟動, 單純 up 不會
         limits:                         # 代表使用記憶體上限值
@@ -278,7 +328,7 @@ services:
     networks:
       - elastic
 
-  # React 前端應用
+# ============== React 前端應用 ==============
   # web-ui -> 部署用
   web-ui:
     profiles: ["prod"]

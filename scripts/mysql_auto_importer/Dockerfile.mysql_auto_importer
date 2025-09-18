@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 先裝依賴（快取友好）
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 複製腳本
+COPY mysql_auto_importer.py .
+
+ENV PYTHONUNBUFFERED=1
+
+CMD ["python", "mysql_auto_importer.py"]

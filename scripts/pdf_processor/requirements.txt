@@ -1,0 +1,8 @@
+pdfplumber
+PyPDF2
+pandas
+pymysql
+pytesseract
+pdf2image
+Pillow
+python-dateutil

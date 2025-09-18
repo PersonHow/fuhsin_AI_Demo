@@ -1,0 +1,167 @@
+{
+  "G鎖-FMEA.pdf": {
+    "hash": "26aee6633863fda6f76ce9f5483dc7c95deecb7a61facc292b6a69c9d8931649",
+    "processed_at": "2025-09-18T07:54:21.900987",
+    "doc_id": "9e67acf65cbe53587e3458fa488506e1",
+    "status": "success",
+    "page_count": 1,
+    "doc_type": "DFMEA",
+    "product_count": 0
+  },
+  "G鎖-客訴資料.pdf": {
+    "hash": "790ecfe7ff11395d701de2c8fbe1d774d234f8159baf4a7d0cb2604346b544a8",
+    "processed_at": "2025-09-18T07:55:01.834687",
+    "doc_id": "310678233bc3c99789ccb26f14aff1af",
+    "status": "success",
+    "page_count": 4,
+    "doc_type": "COMPLAINT",
+    "product_count": 0
+  },
+  "G鎖-設變單通知單-2.pdf": {
+    "hash": "205b3fbe3c8f2260597a22370807f8a22bdc9486c65f3f3ebe73a05332a7b127",
+    "processed_at": "2025-09-18T07:55:02.859386",
+    "status": "error",
+    "error": "無法提取文本內容（檔案可能損壞或為圖片）"
+  },
+  "G鎖-設變單通知單-3.pdf": {
+    "hash": "ab303b1f369ba90af32e09bc17e5620b19a49534850873174206e09a54d6e001",
+    "processed_at": "2025-09-18T07:55:08.897125",
+    "status": "error",
+    "error": "無法提取文本內容（檔案可能損壞或為圖片）"
+  },
+  "G鎖-設變單通知單-4.pdf": {
+    "hash": "25ce2bf62316a24f0cff6c0c30d28002ba33464051ad1633442d50ac8adbf753",
+    "processed_at": "2025-09-18T07:55:09.933547",
+    "status": "error",
+    "error": "無法提取文本內容（檔案可能損壞或為圖片）"
+  },
+  "G鎖-設變單通知單.pdf": {
+    "hash": "fb7e3b8049e82e18f40f2a8a86199b139c8b905ebbb10fa54d024d945f069f2a",
+    "processed_at": "2025-09-18T07:55:10.958178",
+    "status": "error",
+    "error": "無法提取文本內容（檔案可能損壞或為圖片）"
+  },
+  "G鎖-設變申請單-2.pdf": {
+    "hash": "f27cf543803d5c3634a11e77217cd510913ef48c4729ea95c49885d57224a5d9",
+    "processed_at": "2025-09-18T07:55:43.671908",
+    "doc_id": "57c5ae6ec899632fbf2752bf2f82d55c",
+    "status": "success",
+    "page_count": 2,
+    "doc_type": "GENERAL",
+    "product_count": 0
+  },
+  "G鎖-設變申請單-3.pdf": {
+    "hash": "57b43b5e349f92a9b8c8b34c0a1b95133e78f44d9e9e062c3e332f651c24c857",
+    "processed_at": "2025-09-18T07:55:53.630082",
+    "doc_id": "1411d27a9e707acd5ca10cd91eb117cb",
+    "status": "success",
+    "page_count": 2,
+    "doc_type": "GENERAL",
+    "product_count": 0
+  },
+  "G鎖-設變申請單-4.pdf": {
+    "hash": "7f7a6bbe692f5e5a72a8ac16fd6769f321e67c63469cd7ee1b8309afb136abb2",
+    "processed_at": "2025-09-18T07:56:06.808501",
+    "doc_id": "16d8fa8a0623301d5a96d514f0f6d698",
+    "status": "success",
+    "page_count": 2,
+    "doc_type": "GENERAL",
+    "product_count": 0
+  },
+  "G鎖-設變申請單.pdf": {
+    "hash": "7ef7ce8c965a82c4419a5b4429426f502a4b6231f076e0b8dafad111974ddb79",
+    "processed_at": "2025-09-18T07:56:25.993006",
+    "doc_id": "903c6a3c00f222f4dd5a74765c150517",
+    "status": "success",
+    "page_count": 2,
+    "doc_type": "GENERAL",
+    "product_count": 0
+  },
+  "L鎖-客訴資料.pdf": {
+    "hash": "17ebb9f012b0a5046b15eb78b172e548b69a10efdfd181c00fd6767e3eb178d0",
+    "processed_at": "2025-09-18T07:57:14.046011",
+    "doc_id": "91ee03d550317564a91b15c18011baa2",
+    "status": "success",
+    "page_count": 4,
+    "doc_type": "COMPLAINT",
+    "product_count": 0
+  },
+  "L鎖-設變單申請單.pdf": {
+    "hash": "d67d80f5ad33a91bed4289240fe7da5387aff7c505b7abc84acfe9c95ab769c5",
+    "processed_at": "2025-09-18T07:57:27.442989",
+    "doc_id": "b83d6658f4a750d45094d75304315b52",
+    "status": "success",
+    "page_count": 2,
+    "doc_type": "GENERAL",
+    "product_count": 0
+  },
+  "L鎖-設變單通知單.pdf": {
+    "hash": "8e9609edb06feef1daa1f861ec247c333d21cb291cd01da8369cd400776c0f90",
+    "processed_at": "2025-09-18T07:57:33.474019",
+    "status": "error",
+    "error": "無法提取文本內容（檔案可能損壞或為圖片）"
+  },
+  "T鎖-FMEA.pdf": {
+    "hash": "fae6c152c00d52bb44e72bdaf535fe0ff0c0f9d2def409d454f4bee0dd85b7be",
+    "processed_at": "2025-09-18T07:57:34.570609",
+    "doc_id": "c2d2b349833d002649ccc3c3265be8c3",
+    "status": "success",
+    "page_count": 1,
+    "doc_type": "DFMEA",
+    "product_count": 0
+  },
+  "T鎖-客訴資料.pdf": {
+    "hash": "a9ce1194c3ee5519560821c811fe71e98fec6fcdc6d312efabcb65379d6fa1a8",
+    "processed_at": "2025-09-18T07:58:04.964632",
+    "doc_id": "2b6917d4aee4d513d47bbd8c3480cb84",
+    "status": "success",
+    "page_count": 4,
+    "doc_type": "COMPLAINT",
+    "product_count": 0
+  },
+  "T鎖-設變單申請單-2.pdf": {
+    "hash": "fe363b8b7d1cd4e078da73ca11eb14b177ba8d9cfe0f4428e0d03af1436aa2f6",
+    "processed_at": "2025-09-18T07:58:22.674428",
+    "doc_id": "68f618a7ab1f47b770f837cfcd899a19",
+    "status": "success",
+    "page_count": 2,
+    "doc_type": "GENERAL",
+    "product_count": 0
+  },
+  "T鎖-設變單申請單-3.pdf": {
+    "hash": "da799c8af623da60266cb260f5fe9d885d40785a9eb4fe966755f494183db1de",
+    "processed_at": "2025-09-18T07:58:35.145904",
+    "doc_id": "60c298a8bea2866c96250a5f19fee8c5",
+    "status": "success",
+    "page_count": 2,
+    "doc_type": "GENERAL",
+    "product_count": 0
+  },
+  "T鎖-設變單申請單.pdf": {
+    "hash": "ca1d38d4b38f8c6b5ca95392fed47cbea6090882e4e8ac088bf2e8950948ffbb",
+    "processed_at": "2025-09-18T07:58:48.410088",
+    "doc_id": "a24b8185a8418b79f2234cb0fdba7e3b",
+    "status": "success",
+    "page_count": 2,
+    "doc_type": "GENERAL",
+    "product_count": 0
+  },
+  "T鎖-設變單通知單-2.pdf": {
+    "hash": "856a55069ae21211840dd2040331809fc4ea42cf84c996141c2f30cdec889270",
+    "processed_at": "2025-09-18T07:58:54.442519",
+    "status": "error",
+    "error": "無法提取文本內容（檔案可能損壞或為圖片）"
+  },
+  "T鎖-設變單通知單-3.pdf": {
+    "hash": "f9c6d704464113f983259ac228d123fce9e43efa42f1847508a8ded6460c9e55",
+    "processed_at": "2025-09-18T07:58:55.472981",
+    "status": "error",
+    "error": "無法提取文本內容（檔案可能損壞或為圖片）"
+  },
+  "T鎖-設變單通知單.pdf": {
+    "hash": "55098e99b58c64648d3eba08a9e534fce9975cb02b021b8d4b42508ad0d09f91",
+    "processed_at": "2025-09-18T07:58:56.507032",
+    "status": "error",
+    "error": "無法提取文本內容（檔案可能損壞或為圖片）"
+  }
+}

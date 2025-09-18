@@ -48,10 +48,12 @@ EOF
 setup_dirs() {
     echo -e "${GREEN}📁 建立必要目錄...${NC}"
     mkdir -p data/{elasticsearch,kibana}
-    mkdir -p logs/{elasticsearch,db-sync,importer,vector,api}
+    mkdir -p logs/{elasticsearch,db-sync,importer,vector,api,pdf}
     mkdir -p scripts
     mkdir -p sql/incoming/{.done,.error,.progress}
     mkdir -p sql/init
+    mkdir -p pdf/incoming/{.done,.error,.progressing}
+    mkdir -p state/pdf
     mkdir -p web
     chmod -R 777 data logs  # 確保 Docker 容器可以寫入
 }
@@ -286,7 +288,7 @@ clean() {
 reset_sync() {
     echo -e "${YELLOW}重置同步狀態...${NC}"
     rm -f scripts/.db_es_sync_state.json
-    rm -f data/sql_import/.import_state.json
+    rm -f sql/incoming/.import_state.json
     echo -e "${GREEN}✅ 同步狀態已重置，下次啟動將執行全量同步${NC}"
 }
 

@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    tesseract-ocr \
+    tesseract-ocr-chi-tra \
+    tesseract-ocr-eng \
+    poppler-utils\
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
+WORKDIR /app
+
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+
+# 把服務程式碼打包（同上，若用 bind mount 可省略）
+#  bind mount -> 指的是在 compose volume 中掛載 ex:- ./scripts/pdf_processor:/app:ro
+# COPY . /app/scripts
+# COPY pdf_processor_service.py .
+
+# 建立資料夾（即使用 bind mount 也不影響）
+RUN mkdir -p /logs /state /mnt/pdf
+
+
+CMD ["python", "pdf_processor_service.py"]
+
