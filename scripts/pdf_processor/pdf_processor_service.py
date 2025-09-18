@@ -365,95 +365,210 @@ class PDFParser:
     }
 
     @classmethod
-    def extract_text(cls, pdf_path: Path) -> Tuple[str, int]:
+    def extract_text(cls, pdf_path: Path) -> tuple[str, int]:
         """
-        提取 PDF 全文和頁數
-
+        提取 PDF 全文和頁數 - 智能版本
+        
+        策略：
+        1. 先嘗試直接提取文字
+        2. 如果沒有文字，自動使用 OCR
+        3. 混合型 PDF：結合文字層和 OCR
+        
         Args:
             pdf_path: PDF 檔案路徑
-
+            
         Returns:
             tuple: (提取的文字, 頁數)
         """
         text = ""
         page_count = 0
-
+        pages_with_text = 0
+        pages_without_text = 0
+        
         try:
-            # 使用 pdfplumber 開啟 PDF
             with pdfplumber.open(pdf_path) as pdf:
                 page_count = len(pdf.pages)
-                logger.debug(f"PDF 共 {page_count} 頁")
-
+                logger.info(f"開始處理 PDF，共 {page_count} 頁")
+                
+                # 第一遍：嘗試直接提取文字
+                page_texts = []
                 for i, page in enumerate(pdf.pages, 1):
                     # 提取頁面文字
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
-                        logger.debug(f"  第 {i} 頁提取 {len(page_text)} 字元")
-
-                    # 提取表格（福興文件常包含規格表）
+                    page_text = page.extract_text() or ""
+                    
+                    # 提取表格
                     tables = page.extract_tables()
-                    for table_idx, table in enumerate(tables):
-                        logger.debug(f"  第 {i} 頁發現表格 {table_idx + 1}")
+                    table_text = ""
+                    for table in tables:
                         for row in table:
                             if row:
-                                # 將表格行轉換為文字（用 | 分隔）
-                                text += (
-                                    " | ".join(
-                                        str(cell) if cell else "" for cell in row
-                                    )
-                                    + "\n"
-                                )
-
+                                table_text += " | ".join(str(cell) if cell else "" for cell in row) + "\n"
+                    
+                    combined_text = page_text + "\n" + table_text
+                    page_texts.append(combined_text.strip())
+                    
+                    if combined_text.strip():
+                        pages_with_text += 1
+                    else:
+                        pages_without_text += 1
+                
+                # 判斷 PDF 類型
+                text_percentage = pages_with_text / page_count if page_count > 0 else 0
+                
+                if text_percentage >= 0.8:
+                    # 80% 以上頁面有文字 → 文字型 PDF
+                    logger.info(f"✅ 文字型 PDF（{pages_with_text}/{page_count} 頁有文字）")
+                    text = "\n".join(page_texts)
+                    
+                elif text_percentage <= 0.2:
+                    # 20% 以下頁面有文字 → 掃描型 PDF
+                    logger.info(f"⚠️ 掃描型 PDF（僅 {pages_with_text}/{page_count} 頁有文字）")
+                    
+                    # 自動嘗試 OCR（不管 ENABLE_OCR 設定）
+                    logger.info("自動啟用 OCR 處理...")
+                    ocr_text = cls.extract_text_with_ocr_smart(pdf_path, skip_pages_with_text=False)
+                    if ocr_text:
+                        text = ocr_text
+                        logger.info(f"✅ OCR 成功提取 {len(ocr_text)} 字元")
+                    else:
+                        # OCR 也失敗，使用原本提取的少量文字
+                        text = "\n".join(page_texts)
+                        logger.warning("OCR 處理失敗，使用部分提取的文字")
+                        
+                else:
+                    # 混合型 PDF
+                    logger.info(f"🔀 混合型 PDF（{pages_with_text}/{page_count} 頁有文字）")
+                    
+                    # 對沒有文字的頁面使用 OCR
+                    mixed_texts = []
+                    for i, page_text in enumerate(page_texts):
+                        if page_text:
+                            mixed_texts.append(page_text)
+                        else:
+                            logger.info(f"對第 {i+1} 頁使用 OCR...")
+                            ocr_text = cls.extract_single_page_ocr(pdf_path, i+1)
+                            mixed_texts.append(ocr_text)
+                    
+                    text = "\n".join(mixed_texts)
+                    
         except Exception as e:
             logger.error(f"PDF文字提取錯誤 {pdf_path}: {e}")
-
-            # 如果啟用 OCR 且無法提取文字，嘗試 OCR
-            if ENABLE_OCR and not text:
-                logger.info(f"嘗試使用 OCR 處理 {pdf_path}")
-                text = cls.extract_text_with_ocr(pdf_path)
-
+        
+        # 如果完全沒有提取到文字，最後嘗試 OCR
+        if not text and page_count > 0:
+            logger.warning("完全無法提取文字，進行最後 OCR 嘗試...")
+            try:
+                text = cls.extract_text_with_ocr_smart(pdf_path)
+                if text:
+                    logger.info(f"✅ 最後 OCR 嘗試成功：{len(text)} 字元")
+            except Exception as e:
+                logger.error(f"最後 OCR 嘗試失敗: {e}")
+        
+        # 回傳結果
+        if text:
+            logger.info(f"📄 成功提取文字：{len(text)} 字元，{page_count} 頁")
+        else:
+            logger.error(f"❌ 無法提取任何文字")
+        
         return text, page_count
 
+
     @classmethod
-    def extract_text_with_ocr(cls, pdf_path: Path) -> str:
+    def extract_text_with_ocr_smart(cls, pdf_path: Path, skip_pages_with_text: bool = True) -> str:
         """
-        使用 OCR 提取文字（處理掃描檔）
-        需要安裝 tesseract-ocr 和相關 Python 套件
-
+        智能 OCR 處理
+        
         Args:
-            pdf_path: PDF 檔案路徑
-
+            pdf_path: PDF 路徑
+            skip_pages_with_text: 是否跳過已有文字的頁面
+            
         Returns:
             str: OCR 識別的文字
         """
         try:
             import pytesseract
             from pdf2image import convert_from_path
-
-            logger.info(f"開始 OCR 處理...")
-
-            # 將 PDF 轉換為圖片（DPI 200 適合大部分文件）
-            images = convert_from_path(str(pdf_path), dpi=200)
-
+            
+            logger.info(f"開始智能 OCR 處理...")
+            
+            # 先檢查哪些頁面需要 OCR
+            pages_need_ocr = []
+            if skip_pages_with_text:
+                with pdfplumber.open(pdf_path) as pdf:
+                    for i, page in enumerate(pdf.pages):
+                        if not page.extract_text():
+                            pages_need_ocr.append(i + 1)
+            else:
+                # 處理所有頁面
+                with pdfplumber.open(pdf_path) as pdf:
+                    pages_need_ocr = list(range(1, len(pdf.pages) + 1))
+            
+            if not pages_need_ocr:
+                logger.info("沒有頁面需要 OCR")
+                return ""
+            
+            logger.info(f"需要 OCR 的頁面: {pages_need_ocr}")
+            
             text = ""
-            for i, image in enumerate(images):
-                logger.info(f"  OCR 處理第 {i+1}/{len(images)} 頁")
-                # 使用 Tesseract 進行 OCR
-                # lang 參數：chi_tra = 繁體中文, eng = 英文
-                page_text = pytesseract.image_to_string(image, lang=OCR_LANG)
-                text += page_text + "\n"
-
-            logger.info(f"OCR 完成，共識別 {len(text)} 字元")
+            for page_num in pages_need_ocr:
+                # 轉換單頁為圖片
+                images = convert_from_path(
+                    str(pdf_path), 
+                    dpi=200,  # 200 DPI 是平衡質量和速度的好選擇
+                    first_page=page_num,
+                    last_page=page_num
+                )
+                
+                if images:
+                    logger.info(f"  OCR 處理第 {page_num} 頁...")
+                    page_text = pytesseract.image_to_string(
+                        images[0], 
+                        lang='chi_tra+eng',  # 繁體中文 + 英文
+                        config='--psm 3'  # 自動頁面分割
+                    )
+                    text += f"\n--- 第 {page_num} 頁 (OCR) ---\n"
+                    text += page_text + "\n"
+            
             return text
-
+            
         except ImportError:
-            logger.error("OCR 相關套件未安裝（pytesseract, pdf2image）")
+            logger.error("OCR 相關套件未安裝")
             return ""
         except Exception as e:
-            logger.error(f"OCR 處理失敗: {e}")
+            logger.error(f"OCR 處理錯誤: {e}")
             return ""
 
+
+    @classmethod
+    def extract_single_page_ocr(cls, pdf_path: Path, page_num: int) -> str:
+        """
+        對單一頁面進行 OCR
+        
+        Args:
+            pdf_path: PDF 路徑
+            page_num: 頁碼（1 開始）
+            
+        Returns:
+            str: OCR 文字
+        """
+        try:
+            import pytesseract
+            from pdf2image import convert_from_path
+            
+            images = convert_from_path(
+                str(pdf_path),
+                dpi=200,
+                first_page=page_num,
+                last_page=page_num
+            )
+            
+            if images:
+                return pytesseract.image_to_string(images[0], lang='chi_tra+eng')
+            return ""
+            
+        except Exception as e:
+            logger.error(f"單頁 OCR 失敗 (頁 {page_num}): {e}")
+            return ""
     @classmethod
     def detect_doc_type(cls, text: str, filename: str) -> str:
         """
