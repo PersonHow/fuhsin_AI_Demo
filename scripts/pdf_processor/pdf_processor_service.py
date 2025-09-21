@@ -2,21 +2,22 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
-PDF 文檔處理服務 - 福興工業技術文件自動化處理系統
+PDF 文檔處理服務 - 福興工業技術文件自動化處理系統 
 =============================================================================
 
 功能概述：
 1. 自動監控指定目錄中的 PDF 檔案
-2. 解析福興工業的技術文件（設變通知、DFMEA、規格書等）
-3. 提取結構化資料並存入 MySQL 資料庫
-4. 支援狀態追蹤，避免重複處理
-5. 可選的 OCR 功能處理掃描檔
+2. 解析福興工業的技術文件（設變通知、DFMEA、規格書、客訴單等）
+3. 增強的表格處理能力，專門處理表單型 PDF
+4. 提取結構化資料並存入 MySQL 資料庫
+5. 支援狀態追蹤，避免重複處理
+6. 可選的 OCR 功能處理掃描檔
 
 系統架構：
     PDF檔案 → 監控目錄 → 解析處理 → MySQL → 同步到 ES → RAG檢索
 
 作者: [您的團隊]
-版本: 1.0.0
+版本: 2.0.0
 更新日期: 2024
 =============================================================================
 """
@@ -27,24 +28,26 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 
+# 如果需要 OCR 功能，需要額外安裝這些套件
+try:
+    import pytesseract
+    from pdf2image import convert_from_path
+    OCR_AVAILABLE = True
+except ImportError:
+    OCR_AVAILABLE = False
+    logging.warning("OCR 相關套件未安裝，OCR 功能將不可用")
+
 # ============================================================================
 # 環境變數配置
 # ============================================================================
-# 這些環境變數在 docker-compose.yml 中設定，提供靈活的配置選項
-
-# MySQL 連線設定 - 連接到您的資料庫容器
-MYSQL_HOST = os.getenv("MYSQL_HOST", "mysql")  # Docker 網路中的主機名
+# MySQL 連線設定
+MYSQL_HOST = os.getenv("MYSQL_HOST", "mysql")
 MYSQL_PORT = int(os.getenv("MYSQL_PORT", "3306"))
 MYSQL_USER = os.getenv("MYSQL_USER", "root")
 MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "root")
 MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "fuhsin_erp_demo")
 
 # PDF 檔案目錄結構
-# /mnt/pdf/
-#   ├── incoming/      # 新檔案放這裡
-#   ├── .done/         # 處理完成的檔案
-#   ├── .error/        # 處理失敗的檔案
-#   └── .processing/   # 正在處理的檔案（避免重複處理）
 PDF_WATCH_DIR = Path(os.getenv("PDF_WATCH_DIR", "/mnt/pdf/incoming"))
 PDF_DONE_DIR = PDF_WATCH_DIR / ".done"
 PDF_ERROR_DIR = PDF_WATCH_DIR / ".error"
@@ -55,26 +58,25 @@ SCAN_INTERVAL = int(os.getenv("SCAN_INTERVAL", "30"))  # 掃描間隔（秒）
 PROCESS_BATCH_SIZE = int(os.getenv("PROCESS_BATCH_SIZE", "5"))  # 每批處理檔案數
 ENABLE_OCR = os.getenv("ENABLE_OCR", "false").lower() == "true"  # 是否啟用 OCR
 OCR_LANG = os.getenv("OCR_LANG", "chi_tra+eng")  # OCR 語言：繁體中文+英文
+DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() == "true"  # 調試模式
 
 # 狀態和日誌檔案路徑
-STATE_FILE = Path("/state/.pdf_processor_state.json")  # 處理狀態記錄
-LOG_FILE = Path("/logs/pdf_processor.log")  # 日誌檔案
+STATE_FILE = Path("/state/.pdf_processor_state.json")
+LOG_FILE = Path("/logs/pdf_processor.log")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 # ============================================================================
 # 日誌設定
 # ============================================================================
-# 確保目錄存在
 os.makedirs(LOG_FILE.parent, exist_ok=True)
 os.makedirs(STATE_FILE.parent, exist_ok=True)
 
-# 配置日誌格式和輸出
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL),
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOG_FILE),  # 寫入檔案
-        logging.StreamHandler(),  # 輸出到控制台
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler(),
     ],
 )
 logger = logging.getLogger(__name__)
@@ -82,230 +84,485 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # 優雅關閉機制
 # ============================================================================
-# 全域變數：用於接收中斷信號時優雅關閉
 should_stop = False
 
-
 def signal_handler(signum, frame):
-    """
-    處理系統中斷信號（SIGINT, SIGTERM）
-    當收到 docker stop 或 Ctrl+C 時觸發
-    """
+    """處理系統中斷信號"""
     global should_stop
     logger.info("🛑 收到中斷信號，準備優雅關閉...")
     should_stop = True
 
-
-# 註冊信號處理器
-signal.signal(signal.SIGINT, signal_handler)  # Ctrl+C
-signal.signal(signal.SIGTERM, signal_handler)  # docker stop
-
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 # ============================================================================
 # 資料模型定義
 # ============================================================================
 @dataclass
 class TechnicalDocument:
-    """
-    技術文檔資料模型
-
-    使用 @dataclass 裝飾器自動生成 __init__、__repr__ 等方法
-    這個模型對應到 MySQL 的 technical_documents 表
-    """
-
+    """技術文檔資料模型"""
     doc_id: str  # 文檔唯一識別碼（MD5 hash）
-    doc_type: str  # 文檔類型（ECN/DFMEA/SPEC/DRAWING/COMPLAINT）
-    doc_number: str  # 文檔編號（如 EC-K-28-C-083）
+    doc_type: str  # 文檔類型
+    doc_number: str  # 文檔編號
     title: str  # 文檔標題
-    product_ids: List[str]  # 相關產品編號列表（如 ['OB1-G04313AU', 'OB1-G04313A']）
+    product_ids: List[str]  # 相關產品編號列表
     revision: Optional[str]  # 版本號
     issue_date: Optional[str]  # 發行日期
-    department: Optional[str]  # 部門
-    author: Optional[str]  # 作者/負責人
-    content: str  # 完整文本內容（用於全文搜尋）
-    summary: Optional[str]  # 自動生成的摘要
-    keywords: List[str]  # 關鍵字列表（用於標籤和快速檢索）
-    metadata: Dict  # 其他元資料（JSON 格式存儲）
-    file_path: str  # 原始檔案路徑
-    file_hash: str  # 檔案 SHA256 雜湊值（用於去重）
-    created_at: str  # 建立時間
-    updated_at: str  # 更新時間
-    page_count: int  # PDF 頁數
+    author: Optional[str]  # 作者
+    content: str  # 文檔全文內容
+    summary: str  # 摘要
+    keywords: List[str]  # 關鍵字列表
+    metadata: Dict  # 其他元資料
+    file_name: str  # 原始檔案名稱
     file_size: int  # 檔案大小（bytes）
-
+    page_count: int  # 頁數
+    created_at: datetime  # 建立時間
+    form_data: Optional[Dict]  # 表單資料（新增：用於存儲表格型PDF的結構化資料）
 
 # ============================================================================
 # 資料庫管理器
 # ============================================================================
 class DatabaseManager:
-    """
-    資料庫連線和操作管理
-
-    負責：
-    1. 管理 MySQL 連線
-    2. 建立資料表
-    3. 插入/更新文檔資料
-    4. 記錄處理日誌
-    """
-
+    """資料庫操作管理器"""
+    
     def __init__(self):
-        """初始化資料庫管理器"""
         self.connection = None
-        self.create_tables()  # 確保資料表存在
+        self.connect()
+        self.init_database()  # 初始化資料庫表格
 
-    def get_connection(self):
-        """
-        取得資料庫連線（連線池概念的簡單實現）
-        如果連線不存在或已斷開，建立新連線
-        """
-        if not self.connection or not self.connection.open:
-            logger.info("建立新的資料庫連線...")
+    def connect(self):
+        """建立資料庫連線"""
+        try:
             self.connection = pymysql.connect(
                 host=MYSQL_HOST,
                 port=MYSQL_PORT,
                 user=MYSQL_USER,
                 password=MYSQL_PASSWORD,
                 database=MYSQL_DATABASE,
-                charset="utf8mb4",  # 支援完整的 Unicode（包括 emoji）
-                autocommit=True,  # 自動提交事務
+                charset='utf8mb4',
+                cursorclass=pymysql.cursors.DictCursor,
+                autocommit=False
             )
-        return self.connection
-
-    def create_tables(self):
+            logger.info(f"✅ 資料庫連線成功: {MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}")
+        except Exception as e:
+            logger.error(f"❌ 資料庫連線失敗: {e}")
+            raise
+    
+    def init_database(self):
         """
-        建立必要的資料表
-        如果表已存在則跳過（CREATE TABLE IF NOT EXISTS）
-        """
-        create_sql = """
-        -- 主要文檔表：存儲所有解析出的技術文件
-        CREATE TABLE IF NOT EXISTS technical_documents (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            doc_id VARCHAR(64) UNIQUE NOT NULL COMMENT '文檔唯一ID',
-            doc_type VARCHAR(20) NOT NULL COMMENT '文檔類型',
-            doc_number VARCHAR(50) COMMENT '文檔編號',
-            title VARCHAR(255) NOT NULL COMMENT '標題',
-            product_ids JSON COMMENT '相關產品編號（JSON陣列）',
-            revision VARCHAR(20) COMMENT '版本號',
-            issue_date DATE COMMENT '發行日期',
-            department VARCHAR(50) COMMENT '部門',
-            author VARCHAR(50) COMMENT '作者',
-            content LONGTEXT NOT NULL COMMENT '完整內容（用於全文搜尋）',
-            summary TEXT COMMENT '摘要',
-            keywords JSON COMMENT '關鍵字（JSON陣列）',
-            metadata JSON COMMENT '元資料（JSON物件）',
-            file_path VARCHAR(500) COMMENT '檔案路徑',
-            file_hash VARCHAR(64) COMMENT '檔案雜湊',
-            page_count INT DEFAULT 0 COMMENT '頁數',
-            file_size INT DEFAULT 0 COMMENT '檔案大小(bytes)',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            
-            -- 索引優化查詢效能
-            INDEX idx_doc_type (doc_type),        -- 按類型查詢
-            INDEX idx_doc_number (doc_number),    -- 按編號查詢
-            INDEX idx_issue_date (issue_date),    -- 按日期查詢
-            INDEX idx_created_at (created_at),    -- 按建立時間排序
-            FULLTEXT idx_content (content),       -- 全文搜尋內容
-            FULLTEXT idx_title_summary (title, summary)  -- 全文搜尋標題和摘要
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        初始化資料庫表格
         
-        -- 處理記錄表：追蹤每個檔案的處理狀態
-        CREATE TABLE IF NOT EXISTS pdf_processing_log (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            file_name VARCHAR(255) NOT NULL COMMENT '檔案名稱',
-            file_hash VARCHAR(64) COMMENT '檔案雜湊',
-            status ENUM('processing', 'success', 'error') NOT NULL COMMENT '處理狀態',
-            error_message TEXT COMMENT '錯誤訊息',
-            process_time_ms INT COMMENT '處理時間（毫秒）',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            
-            INDEX idx_status (status),
-            INDEX idx_created_at (created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        檢查必要的表格是否存在，如果不存在則建立
+        這包含兩個主要表格：
+        1. technical_documents - 儲存技術文件主要內容
+        2. pdf_processing_log - 記錄處理歷程
         """
-
         try:
             conn = self.get_connection()
             with conn.cursor() as cursor:
-                # 分割 SQL 語句並逐一執行
-                for statement in create_sql.split(";"):
-                    if statement.strip():
-                        cursor.execute(statement)
+                # 建立 technical_documents 表格
+                create_documents_table_sql = """
+                CREATE TABLE IF NOT EXISTS technical_documents (
+                    -- 主鍵與基本識別
+                    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '自增主鍵',
+                    doc_id VARCHAR(32) UNIQUE NOT NULL COMMENT '文檔唯一識別碼 (MD5 hash)',
+                    
+                    -- 文檔分類資訊
+                    doc_type VARCHAR(50) COMMENT '文檔類型 (ECN/DFMEA/SPEC/DRAWING/COMPLAINT/REPORT/OTHER)',
+                    doc_number VARCHAR(200) COMMENT '文檔編號',
+                    title VARCHAR(500) COMMENT '文檔標題',
+                    
+                    -- 產品與版本資訊
+                    product_ids JSON COMMENT '相關產品編號列表 (JSON陣列)',
+                    revision VARCHAR(50) COMMENT '版本號',
+                    issue_date VARCHAR(50) COMMENT '發行日期',
+                    author VARCHAR(200) COMMENT '作者/申請人',
+                    
+                    -- 文檔內容
+                    content LONGTEXT COMMENT '文檔全文內容',
+                    summary TEXT COMMENT '摘要 (最多500字)',
+                    keywords JSON COMMENT '關鍵字列表 (JSON陣列)',
+                    metadata JSON COMMENT '其他元資料 (JSON物件)',
+                    form_data JSON COMMENT '表單結構化資料 (針對表格型PDF)',
+                    
+                    -- 檔案資訊
+                    file_name VARCHAR(255) NOT NULL COMMENT '原始檔案名稱',
+                    file_size INT COMMENT '檔案大小 (bytes)',
+                    page_count INT COMMENT '頁數',
+                    
+                    -- 時間戳記
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
+                    last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
+                    
+                    -- 索引定義
+                    INDEX idx_doc_type (doc_type),
+                    INDEX idx_doc_number (doc_number),
+                    INDEX idx_issue_date (issue_date),
+                    INDEX idx_created_at (created_at),
+                    FULLTEXT idx_content (content),
+                    FULLTEXT idx_summary (summary)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                COMMENT='技術文件主表 - 儲存福興工業的所有技術文件';
+                """
+                
+                cursor.execute(create_documents_table_sql)
+                logger.info("✅ 確認表格存在: technical_documents")
+                
+                # 建立 pdf_processing_log 表格
+                create_log_table_sql = """
+                CREATE TABLE IF NOT EXISTS pdf_processing_log (
+                    -- 主鍵
+                    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '自增主鍵',
+                    
+                    -- 檔案資訊
+                    file_name VARCHAR(255) NOT NULL COMMENT '檔案名稱',
+                    file_hash VARCHAR(32) COMMENT '檔案雜湊值 (MD5)',
+                    
+                    -- 處理狀態
+                    status ENUM('processing', 'success', 'error', 'skipped') NOT NULL COMMENT '處理狀態',
+                    error_message TEXT COMMENT '錯誤訊息 (僅在狀態為error時)',
+                    process_time_ms INT COMMENT '處理時間 (毫秒)',
+                    
+                    -- 時間戳記
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '記錄建立時間',
+                    
+                    -- 索引
+                    INDEX idx_file_name (file_name),
+                    INDEX idx_file_hash (file_hash),
+                    INDEX idx_status (status),
+                    INDEX idx_created_at (created_at)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                COMMENT='PDF處理日誌表 - 記錄所有PDF檔案的處理歷程';
+                """
+                
+                cursor.execute(create_log_table_sql)
+                logger.info("✅ 確認表格存在: pdf_processing_log")
+                
+                # 建立產品編號對照表（可選，用於快速查詢）
+                create_product_mapping_table_sql = """
+                CREATE TABLE IF NOT EXISTS product_document_mapping (
+                    -- 主鍵
+                    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '自增主鍵',
+                    
+                    -- 關聯資訊
+                    product_id VARCHAR(100) NOT NULL COMMENT '產品編號',
+                    doc_id VARCHAR(32) NOT NULL COMMENT '文檔ID (關聯到technical_documents.doc_id)',
+                    
+                    -- 時間戳記
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
+                    
+                    -- 索引與約束
+                    INDEX idx_product_id (product_id),
+                    INDEX idx_doc_id (doc_id),
+                    UNIQUE KEY unique_product_doc (product_id, doc_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                COMMENT='產品文件對照表 - 用於快速查詢特定產品的相關文件';
+                """
+                
+                cursor.execute(create_product_mapping_table_sql)
+                logger.info("✅ 確認表格存在: product_document_mapping")
+                
+                # 建立文件關鍵字索引表（可選，用於改善搜尋效能）
+                create_keyword_index_table_sql = """
+                CREATE TABLE IF NOT EXISTS document_keywords (
+                    -- 主鍵
+                    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '自增主鍵',
+                    
+                    -- 關鍵字資訊
+                    keyword VARCHAR(100) NOT NULL COMMENT '關鍵字',
+                    doc_id VARCHAR(32) NOT NULL COMMENT '文檔ID',
+                    frequency INT DEFAULT 1 COMMENT '關鍵字出現頻率',
+                    
+                    -- 時間戳記
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
+                    
+                    -- 索引與約束
+                    INDEX idx_keyword (keyword),
+                    INDEX idx_doc_id (doc_id),
+                    UNIQUE KEY unique_keyword_doc (keyword, doc_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                COMMENT='文件關鍵字索引表 - 用於加速關鍵字搜尋';
+                """
+                
+                cursor.execute(create_keyword_index_table_sql)
+                logger.info("✅ 確認表格存在: document_keywords")
+                
                 conn.commit()
-                logger.info("✅ 資料表建立/確認成功")
+                
+                # 顯示表格統計資訊
+                self._show_table_stats(cursor)
+                
         except Exception as e:
-            logger.error(f"❌ 建立資料表失敗: {e}")
+            logger.error(f"初始化資料庫表格失敗: {e}")
             raise
-
-    def upsert_document(self, doc: TechnicalDocument) -> bool:
+    
+    def _show_table_stats(self, cursor):
         """
-        插入或更新文檔（UPSERT 操作）
-
-        使用 INSERT ... ON DUPLICATE KEY UPDATE 語法
-        如果 doc_id 已存在則更新，否則插入新記錄
-
+        顯示表格統計資訊
+        
+        在初始化後顯示各表格的記錄數量
+        """
+        try:
+            tables = ['technical_documents', 'pdf_processing_log', 
+                     'product_document_mapping', 'document_keywords']
+            
+            logger.info("="*60)
+            logger.info("📊 資料庫表格統計")
+            logger.info("="*60)
+            
+            for table in tables:
+                cursor.execute(f"SELECT COUNT(*) as count FROM {table}")
+                result = cursor.fetchone()
+                count = result['count'] if result else 0
+                logger.info(f"  {table}: {count} 筆記錄")
+            
+            logger.info("="*60)
+            
+        except Exception as e:
+            logger.debug(f"無法取得表格統計: {e}")
+    
+    def drop_tables_if_needed(self, confirm=False):
+        """
+        刪除所有相關表格（危險操作，需要確認）
+        
         Args:
-            doc: TechnicalDocument 物件
+            confirm: 必須設為 True 才會執行刪除
+        
+        使用方式：
+            db = DatabaseManager()
+            db.drop_tables_if_needed(confirm=True)
+        """
+        if not confirm:
+            logger.warning("⚠️ 刪除表格需要明確確認 (confirm=True)")
+            return
+        
+        try:
+            conn = self.get_connection()
+            with conn.cursor() as cursor:
+                tables = [
+                    'document_keywords',
+                    'product_document_mapping', 
+                    'pdf_processing_log',
+                    'technical_documents'
+                ]
+                
+                for table in tables:
+                    sql = f"DROP TABLE IF EXISTS {table}"
+                    cursor.execute(sql)
+                    logger.warning(f"🗑️ 已刪除表格: {table}")
+                
+                conn.commit()
+                logger.warning("⚠️ 所有表格已刪除，將在下次連線時重新建立")
+                
+        except Exception as e:
+            logger.error(f"刪除表格失敗: {e}")
 
-        Returns:
-            bool: 操作是否成功
+    def get_connection(self):
+        """取得資料庫連線，必要時重新連線"""
+        try:
+            if not self.connection or not self.connection.ping(reconnect=False):
+                logger.warning("資料庫連線已斷開，嘗試重新連線...")
+                self.connect()
+        except:
+            self.connect()
+        return self.connection
+
+    def save_document(self, doc: TechnicalDocument) -> bool:
+        """
+        儲存文檔到資料庫
+        
+        同時更新相關的對照表
         """
         sql = """
-        INSERT INTO technical_documents (
-            doc_id, doc_type, doc_number, title, product_ids, revision,
-            issue_date, department, author, content, summary, keywords,
-            metadata, file_path, file_hash, page_count, file_size
-        ) VALUES (
-            %(doc_id)s, %(doc_type)s, %(doc_number)s, %(title)s, 
-            %(product_ids)s, %(revision)s, %(issue_date)s, %(department)s,
-            %(author)s, %(content)s, %(summary)s, %(keywords)s,
-            %(metadata)s, %(file_path)s, %(file_hash)s, %(page_count)s, %(file_size)s
-        )
+        INSERT INTO technical_documents 
+        (doc_id, doc_type, doc_number, title, product_ids, revision,
+         issue_date, author, content, summary, keywords, metadata,
+         file_name, file_size, page_count, form_data)
+        VALUES (%(doc_id)s, %(doc_type)s, %(doc_number)s, %(title)s, 
+                %(product_ids)s, %(revision)s, %(issue_date)s, %(author)s,
+                %(content)s, %(summary)s, %(keywords)s, %(metadata)s,
+                %(file_name)s, %(file_size)s, %(page_count)s, %(form_data)s)
         ON DUPLICATE KEY UPDATE
             doc_type = VALUES(doc_type),
+            doc_number = VALUES(doc_number),
             title = VALUES(title),
             product_ids = VALUES(product_ids),
+            revision = VALUES(revision),
+            issue_date = VALUES(issue_date),
+            author = VALUES(author),
             content = VALUES(content),
             summary = VALUES(summary),
             keywords = VALUES(keywords),
             metadata = VALUES(metadata),
-            page_count = VALUES(page_count),
+            file_name = VALUES(file_name),
             file_size = VALUES(file_size),
-            updated_at = CURRENT_TIMESTAMP
+            page_count = VALUES(page_count),
+            form_data = VALUES(form_data)
         """
-
         try:
             conn = self.get_connection()
             with conn.cursor() as cursor:
-                # 將 dataclass 轉換為字典
+                # 準備資料
                 doc_dict = asdict(doc)
-
-                # 將 Python 列表/字典轉換為 JSON 字串
-                doc_dict["product_ids"] = json.dumps(
-                    doc.product_ids, ensure_ascii=False
-                )
+                
+                # 保存原始的列表和字典，用於後續處理
+                original_product_ids = doc.product_ids
+                original_keywords = doc.keywords
+                
+                # 將列表和字典轉換為 JSON 字串
+                doc_dict["product_ids"] = json.dumps(doc.product_ids, ensure_ascii=False)
                 doc_dict["keywords"] = json.dumps(doc.keywords, ensure_ascii=False)
                 doc_dict["metadata"] = json.dumps(doc.metadata, ensure_ascii=False)
-
+                doc_dict["form_data"] = json.dumps(doc.form_data, ensure_ascii=False) if doc.form_data else None
+                
+                # 移除 created_at，讓資料庫使用預設值
+                doc_dict.pop('created_at', None)
+                
+                # 執行主表插入
                 cursor.execute(sql, doc_dict)
+                
+                # 更新產品文件對照表
+                self._update_product_mapping(cursor, doc.doc_id, original_product_ids)
+                
+                # 更新關鍵字索引表
+                self._update_keyword_index(cursor, doc.doc_id, original_keywords)
+                
                 conn.commit()
                 return True
+                
         except Exception as e:
             logger.error(f"資料庫寫入錯誤: {e}")
+            if conn:
+                conn.rollback()
             return False
+    
+    def _update_product_mapping(self, cursor, doc_id: str, product_ids: List[str]):
+        """
+        更新產品文件對照表
+        
+        用於建立產品編號與文件的關聯
+        """
+        try:
+            # 先刪除舊的對照
+            cursor.execute(
+                "DELETE FROM product_document_mapping WHERE doc_id = %s",
+                (doc_id,)
+            )
+            
+            # 插入新的對照
+            if product_ids:
+                values = [(product_id, doc_id) for product_id in product_ids]
+                cursor.executemany(
+                    "INSERT IGNORE INTO product_document_mapping (product_id, doc_id) VALUES (%s, %s)",
+                    values
+                )
+                
+        except Exception as e:
+            logger.debug(f"更新產品對照表失敗: {e}")
+    
+    def _update_keyword_index(self, cursor, doc_id: str, keywords: List[str]):
+        """
+        更新關鍵字索引表
+        
+        用於加速關鍵字搜尋
+        """
+        try:
+            # 先刪除舊的索引
+            cursor.execute(
+                "DELETE FROM document_keywords WHERE doc_id = %s",
+                (doc_id,)
+            )
+            
+            # 計算關鍵字頻率
+            keyword_freq = {}
+            for keyword in keywords:
+                keyword_freq[keyword] = keyword_freq.get(keyword, 0) + 1
+            
+            # 插入新的索引
+            if keyword_freq:
+                values = [(keyword, doc_id, freq) 
+                         for keyword, freq in keyword_freq.items()]
+                cursor.executemany(
+                    "INSERT IGNORE INTO document_keywords (keyword, doc_id, frequency) VALUES (%s, %s, %s)",
+                    values
+                )
+                
+        except Exception as e:
+            logger.debug(f"更新關鍵字索引失敗: {e}")
+    
+    def check_document_exists(self, doc_id: str) -> bool:
+        """
+        檢查文檔是否已存在
+        
+        Args:
+            doc_id: 文檔ID (MD5 hash)
+            
+        Returns:
+            bool: 是否存在
+        """
+        try:
+            conn = self.get_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT 1 FROM technical_documents WHERE doc_id = %s",
+                    (doc_id,)
+                )
+                return cursor.fetchone() is not None
+        except Exception as e:
+            logger.error(f"檢查文檔存在性失敗: {e}")
+            return False
+    
+    def get_statistics(self) -> Dict:
+        """
+        取得處理統計資訊
+        
+        Returns:
+            包含各種統計數據的字典
+        """
+        try:
+            conn = self.get_connection()
+            with conn.cursor() as cursor:
+                stats = {}
+                
+                # 文檔總數
+                cursor.execute("SELECT COUNT(*) as total FROM technical_documents")
+                stats['total_documents'] = cursor.fetchone()['total']
+                
+                # 各類型文檔數量
+                cursor.execute("""
+                    SELECT doc_type, COUNT(*) as count 
+                    FROM technical_documents 
+                    GROUP BY doc_type
+                """)
+                stats['documents_by_type'] = {row['doc_type']: row['count'] 
+                                            for row in cursor.fetchall()}
+                
+                # 今日處理數量
+                cursor.execute("""
+                    SELECT COUNT(*) as today_count 
+                    FROM pdf_processing_log 
+                    WHERE DATE(created_at) = CURDATE()
+                """)
+                stats['today_processed'] = cursor.fetchone()['today_count']
+                
+                # 錯誤統計
+                cursor.execute("""
+                    SELECT COUNT(*) as error_count 
+                    FROM pdf_processing_log 
+                    WHERE status = 'error' 
+                    AND DATE(created_at) = CURDATE()
+                """)
+                stats['today_errors'] = cursor.fetchone()['error_count']
+                
+                return stats
+                
+        except Exception as e:
+            logger.error(f"取得統計資訊失敗: {e}")
+            return {}
 
-    def log_processing(
-        self,
-        file_name: str,
-        file_hash: str,
-        status: str,
-        error_message: str = None,
-        process_time_ms: int = 0,
-    ):
-        """
-        記錄處理狀態到日誌表
-        用於追蹤和診斷問題
-        """
+    def log_processing(self, file_name: str, file_hash: str, status: str,
+                        error_message: str = None, process_time_ms: int = 0):
+        """記錄處理狀態到日誌表"""
         sql = """
         INSERT INTO pdf_processing_log 
         (file_name, file_hash, status, error_message, process_time_ms)
@@ -314,9 +571,7 @@ class DatabaseManager:
         try:
             conn = self.get_connection()
             with conn.cursor() as cursor:
-                cursor.execute(
-                    sql, (file_name, file_hash, status, error_message, process_time_ms)
-                )
+                cursor.execute(sql, (file_name, file_hash, status, error_message, process_time_ms))
                 conn.commit()
         except Exception as e:
             logger.error(f"記錄處理日誌失敗: {e}")
@@ -327,558 +582,652 @@ class DatabaseManager:
             self.connection.close()
             logger.info("資料庫連線已關閉")
 
-
 # ============================================================================
-# PDF 解析器
+# 增強版 PDF 解析器
 # ============================================================================
-class PDFParser:
+class EnhancedPDFParser:
     """
-    PDF 文件解析器 - 專門針對福興工業文件優化
-
-    主要功能：
-    1. 提取 PDF 文字內容（原生文字層）
-    2. 識別文檔類型（設變通知、DFMEA 等）
-    3. 提取產品編號（使用正則表達式）
-    4. 生成摘要和關鍵字
-    5. 可選的 OCR 處理（掃描檔）
+    增強版 PDF 文件解析器
+    
+    主要改進：
+    1. 改進的表格處理能力
+    2. 多策略文字提取
+    3. 表單資料結構化提取
+    4. OCR 備援機制
+    5. PDF 類型自動偵測
     """
-
-    # 福興產品編號的正則表達式模式
-    # 這些模式基於您提供的 PDF 文件中的實際產品編號格式
+    
+    # 產品編號的正則表達式模式
     PRODUCT_PATTERNS = [
-        r"OB\d-[A-Z0-9]+",  # 例：OB1-G04313AU, OB1-G04313A
-        r"[FG]\d{2}-[A-Z0-9]+",  # 例：F05-L0Y513, G05-L05513
-        r"[PW]\d{3}",  # 例：P001, W002（產品/倉庫編號）
-        r"EC-K-\d{2}-[A-Z]-\d{3}",  # 例：EC-K-28-C-083（文件編號）
-        r"L\d{6}[A-Z]?\d?",  # 例：L113055R2, L112078（變更單號）
+        r"OB\d-[A-Z0-9]+",
+        r"[FG]\d{2}-[A-Z0-9]+",
+        r"[PW]\d{3}",
+        r"EC-K-\d{2}-[A-Z]-\d{3}",
+        r"L\d{6}[A-Z]?\d?",
+        r"[A-Z]{2,3}-\d{4,6}",
     ]
-
-    # 文檔類型識別關鍵字
-    # 用於自動分類文檔
+    
+    # 文檔類型關鍵字
     DOC_TYPE_KEYWORDS = {
-        "ECN": ["設變通知", "設計變更", "ECN", "Engineering Change"],
-        "DFMEA": ["DFMEA", "失效模式", "風險分析"],
-        "SPEC": ["規格", "規範", "Specification", "技術要求"],
-        "DRAWING": ["圖面", "圖紙", "Drawing", "工程圖"],
-        "COMPLAINT": ["客訴", "客戶抱怨", "顧客抱怨", "Complaint"],
-        "REPORT": ["報告", "測試", "Report", "Test"],
+        "ECN": ["設變", "工程變更", "設計變更", "ECN", "設變通知", "設變單"],
+        "DFMEA": ["DFMEA", "失效模式", "失效分析", "風險分析"],
+        "SPEC": ["規格", "規格書", "specification", "spec"],
+        "DRAWING": ["圖面", "圖紙", "工程圖", "drawing"],
+        "COMPLAINT": ["客訴", "客戶投訴", "客戶抱怨", "complaint", "客訴單"],
+        "REPORT": ["報告", "測試報告", "檢驗報告", "report"],
     }
-
+    
     @classmethod
-    def extract_text(cls, pdf_path: Path) -> tuple[str, int]:
+    def detect_pdf_type(cls, pdf_path: Path) -> str:
         """
-        提取 PDF 全文和頁數 - 智能版本
+        偵測 PDF 類型以採用不同處理策略
         
-        策略：
-        1. 先嘗試直接提取文字
-        2. 如果沒有文字，自動使用 OCR
-        3. 混合型 PDF：結合文字層和 OCR
-        
-        Args:
-            pdf_path: PDF 檔案路徑
-            
-        Returns:
-            tuple: (提取的文字, 頁數)
+        返回值：
+        - SCANNED: 掃描檔，需要 OCR
+        - TABLE_FORM: 表單型，需要表格提取
+        - MIXED: 混合型，有文字也有表格
+        - TEXT: 純文字型
         """
-        text = ""
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                if not pdf.pages:
+                    return "EMPTY"
+                
+                first_page = pdf.pages[0]
+                
+                # 檢查是否有文字層
+                text = first_page.extract_text()
+                has_text = bool(text and len(text.strip()) > 50)
+                
+                # 檢查是否有表格
+                tables = first_page.extract_tables()
+                has_tables = bool(tables)
+                
+                # 檢查是否為掃描件（通常只有圖片）
+                has_images = bool(first_page.images)
+                
+                # 檢查是否有大量的管道符號（表格殘留）
+                has_pipe_chars = text.count('|') > 20 if text else False
+                
+                if not has_text and has_images:
+                    logger.info(f"PDF 類型: SCANNED（掃描檔）")
+                    return "SCANNED"
+                elif has_tables or has_pipe_chars:
+                    logger.info(f"PDF 類型: TABLE_FORM（表單型）")
+                    return "TABLE_FORM"
+                elif has_tables and has_text:
+                    logger.info(f"PDF 類型: MIXED（混合型）")
+                    return "MIXED"
+                else:
+                    logger.info(f"PDF 類型: TEXT（純文字型）")
+                    return "TEXT"
+                    
+        except Exception as e:
+            logger.error(f"偵測 PDF 類型失敗: {e}")
+            return "UNKNOWN"
+    
+    @classmethod
+    def extract_text_enhanced(cls, pdf_path: Path) -> Tuple[str, int]:
+        """
+        增強版文字提取方法
+        
+        使用多種策略提取文字：
+        1. 表格優先策略
+        2. 一般文字提取
+        3. 字元級別提取
+        4. OCR 備援
+        """
+        pdf_type = cls.detect_pdf_type(pdf_path)
+        text_parts = []
         page_count = 0
-        pages_with_text = 0
-        pages_without_text = 0
         
         try:
             with pdfplumber.open(pdf_path) as pdf:
-                page_count = len(pdf.pages)
-                logger.info(f"開始處理 PDF，共 {page_count} 頁")
+                for page_num, page in enumerate(pdf.pages):
+                    page_count += 1
+                    page_text = ""
+                    
+                    # 根據 PDF 類型選擇提取策略
+                    if pdf_type in ["TABLE_FORM", "MIXED"]:
+                        # 策略1: 優先提取表格內容
+                        page_text = cls._extract_table_text(page)
+                    
+                    # 策略2: 提取一般文字
+                    if not page_text:
+                        page_text = cls._extract_regular_text(page)
+                    
+                    # 策略3: 字元級別提取（最後手段）
+                    if not page_text and page.chars:
+                        page_text = cls._extract_char_level_text(page)
+                    
+                    if page_text:
+                        text_parts.append(f"[第 {page_num + 1} 頁]\n{page_text}")
+                    
+                    if DEBUG_MODE and page_num == 0:
+                        logger.debug(f"第一頁文字預覽: {page_text[:200]}")
+            
+            combined_text = '\n'.join(text_parts)
+            
+            # 如果提取失敗且啟用了 OCR，使用 OCR 處理
+            if (not combined_text.strip() or len(combined_text) < 50) and ENABLE_OCR:
+                logger.warning(f"文字提取結果過少，嘗試 OCR: {pdf_path.name}")
+                combined_text = cls._perform_ocr(pdf_path)
+            
+            # 清理文字
+            combined_text = cls._clean_extracted_text(combined_text)
+            
+            return combined_text, page_count
+            
+        except Exception as e:
+            logger.error(f"文字提取失敗: {e}")
+            return "", 0
+    
+    @classmethod
+    def _extract_table_text(cls, page) -> str:
+        """
+        提取表格內的文字
+        
+        專門處理表格型 PDF，如設變單、客訴單等
+        """
+        text_parts = []
+        
+        try:
+            # 使用更細緻的表格提取設定
+            table_settings = {
+                "vertical_strategy": "lines",     # 使用線條偵測垂直邊界
+                "horizontal_strategy": "lines",   # 使用線條偵測水平邊界
+                "snap_tolerance": 3,              # 線條對齊容差
+                "join_tolerance": 3,              # 線條連接容差
+                "edge_min_length": 3,             # 最小邊緣長度
+                "min_words_vertical": 1,          # 垂直最少字數
+                "min_words_horizontal": 1,        # 水平最少字數
+                "text_tolerance": 3,              # 文字對齊容差
+                "intersection_tolerance": 3,      # 交叉點容差
+            }
+            
+            tables = page.extract_tables(table_settings=table_settings)
+            
+            if tables:
+                logger.debug(f"找到 {len(tables)} 個表格")
                 
-                # 第一遍：嘗試直接提取文字
-                page_texts = []
-                for i, page in enumerate(pdf.pages, 1):
-                    # 提取頁面文字
-                    page_text = page.extract_text() or ""
+                for table_idx, table in enumerate(tables):
+                    if not table:
+                        continue
                     
-                    # 提取表格
-                    tables = page.extract_tables()
-                    table_text = ""
-                    for table in tables:
-                        for row in table:
-                            if row:
-                                table_text += " | ".join(str(cell) if cell else "" for cell in row) + "\n"
-                    
-                    combined_text = page_text + "\n" + table_text
-                    page_texts.append(combined_text.strip())
-                    
-                    if combined_text.strip():
-                        pages_with_text += 1
-                    else:
-                        pages_without_text += 1
-                
-                # 判斷 PDF 類型
-                text_percentage = pages_with_text / page_count if page_count > 0 else 0
-                
-                if text_percentage >= 0.8:
-                    # 80% 以上頁面有文字 → 文字型 PDF
-                    logger.info(f"✅ 文字型 PDF（{pages_with_text}/{page_count} 頁有文字）")
-                    text = "\n".join(page_texts)
-                    
-                elif text_percentage <= 0.2:
-                    # 20% 以下頁面有文字 → 掃描型 PDF
-                    logger.info(f"⚠️ 掃描型 PDF（僅 {pages_with_text}/{page_count} 頁有文字）")
-                    
-                    # 自動嘗試 OCR（不管 ENABLE_OCR 設定）
-                    logger.info("自動啟用 OCR 處理...")
-                    ocr_text = cls.extract_text_with_ocr_smart(pdf_path, skip_pages_with_text=False)
-                    if ocr_text:
-                        text = ocr_text
-                        logger.info(f"✅ OCR 成功提取 {len(ocr_text)} 字元")
-                    else:
-                        # OCR 也失敗，使用原本提取的少量文字
-                        text = "\n".join(page_texts)
-                        logger.warning("OCR 處理失敗，使用部分提取的文字")
+                    # 處理每個表格
+                    for row_idx, row in enumerate(table):
+                        if not row:
+                            continue
                         
-                else:
-                    # 混合型 PDF
-                    logger.info(f"🔀 混合型 PDF（{pages_with_text}/{page_count} 頁有文字）")
-                    
-                    # 對沒有文字的頁面使用 OCR
-                    mixed_texts = []
-                    for i, page_text in enumerate(page_texts):
-                        if page_text:
-                            mixed_texts.append(page_text)
-                        else:
-                            logger.info(f"對第 {i+1} 頁使用 OCR...")
-                            ocr_text = cls.extract_single_page_ocr(pdf_path, i+1)
-                            mixed_texts.append(ocr_text)
-                    
-                    text = "\n".join(mixed_texts)
-                    
+                        # 過濾並清理每個儲存格
+                        cleaned_cells = []
+                        for cell in row:
+                            if cell is not None:
+                                # 移除純管道符號
+                                cell_text = str(cell).strip()
+                                if cell_text and cell_text != '|' and not all(c == '|' for c in cell_text):
+                                    cleaned_cells.append(cell_text)
+                        
+                        # 組合非空儲存格
+                        if cleaned_cells:
+                            row_text = ' | '.join(cleaned_cells)
+                            text_parts.append(row_text)
+                            
+                            if DEBUG_MODE and table_idx == 0 and row_idx < 5:
+                                logger.debug(f"表格行 {row_idx}: {row_text}")
+        
         except Exception as e:
-            logger.error(f"PDF文字提取錯誤 {pdf_path}: {e}")
+            logger.error(f"表格提取失敗: {e}")
         
-        # 如果完全沒有提取到文字，最後嘗試 OCR
-        if not text and page_count > 0:
-            logger.warning("完全無法提取文字，進行最後 OCR 嘗試...")
-            try:
-                text = cls.extract_text_with_ocr_smart(pdf_path)
-                if text:
-                    logger.info(f"✅ 最後 OCR 嘗試成功：{len(text)} 字元")
-            except Exception as e:
-                logger.error(f"最後 OCR 嘗試失敗: {e}")
-        
-        # 回傳結果
-        if text:
-            logger.info(f"📄 成功提取文字：{len(text)} 字元，{page_count} 頁")
-        else:
-            logger.error(f"❌ 無法提取任何文字")
-        
-        return text, page_count
-
-
+        return '\n'.join(text_parts)
+    
     @classmethod
-    def extract_text_with_ocr_smart(cls, pdf_path: Path, skip_pages_with_text: bool = True) -> str:
-        """
-        智能 OCR 處理
-        
-        Args:
-            pdf_path: PDF 路徑
-            skip_pages_with_text: 是否跳過已有文字的頁面
-            
-        Returns:
-            str: OCR 識別的文字
-        """
+    def _extract_regular_text(cls, page) -> str:
+        """提取一般文字"""
         try:
-            import pytesseract
-            from pdf2image import convert_from_path
-            
-            logger.info(f"開始智能 OCR 處理...")
-            
-            # 先檢查哪些頁面需要 OCR
-            pages_need_ocr = []
-            if skip_pages_with_text:
-                with pdfplumber.open(pdf_path) as pdf:
-                    for i, page in enumerate(pdf.pages):
-                        if not page.extract_text():
-                            pages_need_ocr.append(i + 1)
-            else:
-                # 處理所有頁面
-                with pdfplumber.open(pdf_path) as pdf:
-                    pages_need_ocr = list(range(1, len(pdf.pages) + 1))
-            
-            if not pages_need_ocr:
-                logger.info("沒有頁面需要 OCR")
-                return ""
-            
-            logger.info(f"需要 OCR 的頁面: {pages_need_ocr}")
-            
-            text = ""
-            for page_num in pages_need_ocr:
-                # 轉換單頁為圖片
-                images = convert_from_path(
-                    str(pdf_path), 
-                    dpi=200,  # 200 DPI 是平衡質量和速度的好選擇
-                    first_page=page_num,
-                    last_page=page_num
-                )
+            text = page.extract_text()
+            if text:
+                # 移除多餘的管道符號
+                text = re.sub(r'\|{2,}', ' ', text)
+                text = re.sub(r'(?:^|\n)\|+(?:$|\n)', '\n', text)
+                return text.strip()
+        except Exception as e:
+            logger.error(f"一般文字提取失敗: {e}")
+        return ""
+    
+    @classmethod
+    def _extract_char_level_text(cls, page) -> str:
+        """字元級別文字提取"""
+        try:
+            chars = page.chars
+            if chars:
+                # 按位置排序字元
+                sorted_chars = sorted(chars, key=lambda x: (x['top'], x['x0']))
                 
-                if images:
-                    logger.info(f"  OCR 處理第 {page_num} 頁...")
-                    page_text = pytesseract.image_to_string(
-                        images[0], 
-                        lang='chi_tra+eng',  # 繁體中文 + 英文
-                        config='--psm 3'  # 自動頁面分割
-                    )
-                    text += f"\n--- 第 {page_num} 頁 (OCR) ---\n"
-                    text += page_text + "\n"
-            
-            return text
-            
-        except ImportError:
-            logger.error("OCR 相關套件未安裝")
-            return ""
+                # 組合字元，考慮行間距
+                lines = []
+                current_line = []
+                last_top = None
+                line_threshold = 3  # 行間距閾值
+                
+                for char in sorted_chars:
+                    if last_top is None or abs(char['top'] - last_top) < line_threshold:
+                        current_line.append(char['text'])
+                    else:
+                        lines.append(''.join(current_line))
+                        current_line = [char['text']]
+                    last_top = char['top']
+                
+                if current_line:
+                    lines.append(''.join(current_line))
+                
+                return '\n'.join(lines)
+                
         except Exception as e:
-            logger.error(f"OCR 處理錯誤: {e}")
-            return ""
-
-
+            logger.error(f"字元級別提取失敗: {e}")
+        return ""
+    
     @classmethod
-    def extract_single_page_ocr(cls, pdf_path: Path, page_num: int) -> str:
+    def _perform_ocr(cls, pdf_path: Path) -> str:
         """
-        對單一頁面進行 OCR
+        使用 OCR 處理無法提取文字的 PDF
         
-        Args:
-            pdf_path: PDF 路徑
-            page_num: 頁碼（1 開始）
-            
-        Returns:
-            str: OCR 文字
+        需要安裝：
+        - pytesseract
+        - pdf2image
+        - tesseract-ocr (系統層級)
         """
-        try:
-            import pytesseract
-            from pdf2image import convert_from_path
-            
-            images = convert_from_path(
-                str(pdf_path),
-                dpi=200,
-                first_page=page_num,
-                last_page=page_num
-            )
-            
-            if images:
-                return pytesseract.image_to_string(images[0], lang='chi_tra+eng')
+        if not OCR_AVAILABLE:
+            logger.warning("OCR 套件未安裝，跳過 OCR 處理")
             return ""
+        
+        try:
+            logger.info(f"開始 OCR 處理: {pdf_path.name}")
+            
+            # 將 PDF 轉換為圖片
+            images = convert_from_path(pdf_path, dpi=300)
+            
+            text_parts = []
+            for i, image in enumerate(images):
+                # 執行 OCR
+                text = pytesseract.image_to_string(
+                    image,
+                    lang=OCR_LANG,  # 使用設定的語言
+                    config='--psm 6'  # 假設為統一的文字區塊
+                )
+                text_parts.append(f"[OCR 第 {i+1} 頁]\n{text}")
+                logger.info(f"OCR 處理第 {i+1}/{len(images)} 頁完成")
+            
+            return '\n'.join(text_parts)
             
         except Exception as e:
-            logger.error(f"單頁 OCR 失敗 (頁 {page_num}): {e}")
+            logger.error(f"OCR 處理失敗: {e}")
             return ""
+    
     @classmethod
-    def detect_doc_type(cls, text: str, filename: str) -> str:
+    def _clean_extracted_text(cls, text: str) -> str:
         """
-        識別文檔類型
-
-        策略：
-        1. 先檢查檔名
-        2. 再檢查內容關鍵字
-        3. 無法識別則返回 'GENERAL'
-
-        Args:
-            text: 文檔內容
-            filename: 檔案名稱
-
-        Returns:
-            str: 文檔類型
+        清理提取的文字
+        
+        移除多餘的符號、空白等
         """
+        if not text:
+            return ""
+        
+        # 移除連續的管道符號
+        text = re.sub(r'\|{3,}', '', text)
+        
+        # 移除只有管道符號的行
+        lines = text.split('\n')
+        cleaned_lines = []
+        for line in lines:
+            # 移除只有管道和空白的行
+            if line.strip() and not all(c in '| \t' for c in line):
+                cleaned_lines.append(line)
+        
+        text = '\n'.join(cleaned_lines)
+        
+        # 移除多餘的空白
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        text = re.sub(r' {3,}', '  ', text)
+        
+        return text.strip()
+    
+    @classmethod
+    def extract_form_data(cls, pdf_path: Path) -> Dict:
+        """
+        提取表單資料
+        
+        專門處理表單類 PDF（設變單、客訴單等）
+        將表格轉換為結構化的鍵值對
+        """
+        form_data = {}
+        
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                for page in pdf.pages:
+                    tables = page.extract_tables()
+                    
+                    for table in tables:
+                        if not table:
+                            continue
+                        
+                        for row in table:
+                            if not row or len(row) < 2:
+                                continue
+                            
+                            # 嘗試將表格解析為鍵值對
+                            # 通常第一欄是標籤，第二欄是值
+                            key = str(row[0]).strip() if row[0] else ""
+                            value = str(row[1]).strip() if row[1] else ""
+                            
+                            # 清理鍵名
+                            key = re.sub(r'[：:]', '', key)
+                            key = key.replace(' ', '_')
+                            
+                            # 只保存有意義的資料
+                            if key and value and key != '|' and value != '|':
+                                # 如果鍵已存在，將值組合成列表
+                                if key in form_data:
+                                    if isinstance(form_data[key], list):
+                                        form_data[key].append(value)
+                                    else:
+                                        form_data[key] = [form_data[key], value]
+                                else:
+                                    form_data[key] = value
+                            
+                            # 如果有更多欄位，也嘗試配對
+                            if len(row) > 3:
+                                for i in range(2, len(row) - 1, 2):
+                                    if i + 1 < len(row):
+                                        sub_key = str(row[i]).strip() if row[i] else ""
+                                        sub_value = str(row[i + 1]).strip() if row[i + 1] else ""
+                                        
+                                        sub_key = re.sub(r'[：:]', '', sub_key).replace(' ', '_')
+                                        
+                                        if sub_key and sub_value and sub_key != '|' and sub_value != '|':
+                                            form_data[sub_key] = sub_value
+        
+        except Exception as e:
+            logger.error(f"表單資料提取失敗: {e}")
+        
+        if DEBUG_MODE and form_data:
+            logger.debug(f"提取的表單資料: {list(form_data.keys())[:10]}")
+        
+        return form_data
+    
+    @classmethod
+    def detect_doc_type(cls, text: str, file_name: str) -> str:
+        """偵測文檔類型"""
         text_lower = text.lower()
-        filename_lower = filename.lower()
-
-        # 檢查每種文檔類型的關鍵字
+        file_name_lower = file_name.lower()
+        
         for doc_type, keywords in cls.DOC_TYPE_KEYWORDS.items():
             for keyword in keywords:
-                if keyword.lower() in text_lower or keyword.lower() in filename_lower:
-                    logger.debug(f"識別為 {doc_type} 類型（關鍵字：{keyword}）")
+                if keyword.lower() in text_lower or keyword.lower() in file_name_lower:
+                    logger.info(f"偵測到文檔類型: {doc_type}")
                     return doc_type
-
-        # 無法識別，返回通用類型
-        return "GENERAL"
-
+        
+        return "OTHER"
+    
     @classmethod
     def extract_product_ids(cls, text: str) -> List[str]:
-        """
-        提取產品編號
-
-        使用正則表達式匹配福興的產品編號格式
-        去重並排序後返回
-
-        Args:
-            text: 文檔內容
-
-        Returns:
-            list: 產品編號列表
-        """
+        """提取產品編號"""
         product_ids = set()
-
+        
         for pattern in cls.PRODUCT_PATTERNS:
-            # 使用正則表達式查找所有匹配
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            # 轉換為大寫並加入集合（自動去重）
-            product_ids.update(m.upper() for m in matches)
-
-        result = sorted(list(product_ids))[:20]  # 最多保留20個
-        logger.debug(f"找到 {len(result)} 個產品編號: {result[:5]}...")
-
-        return result
-
+            matches = re.findall(pattern, text)
+            product_ids.update(matches)
+        
+        return list(product_ids)
+    
     @classmethod
-    def extract_metadata(cls, text: str, doc_type: str) -> Dict:
+    def extract_metadata(cls, text: str, doc_type: str, form_data: Dict = None) -> Dict:
         """
-        提取元資料（日期、版本號等）
-
-        Args:
-            text: 文檔內容
-            doc_type: 文檔類型
-
-        Returns:
-            dict: 元資料字典
+        提取元資料
+        
+        結合文字內容和表單資料提取元資料
         """
         metadata = {}
-
-        # 提取日期（支援多種格式）
-        date_patterns = [
-            r"\d{4}/\d{1,2}/\d{1,2}",  # 2024/4/25
-            r"\d{4}-\d{1,2}-\d{1,2}",  # 2024-04-25
-        ]
-        for pattern in date_patterns:
-            dates = re.findall(pattern, text)
-            if dates:
-                metadata["dates"] = dates[:5]  # 最多保留5個日期
-                logger.debug(f"找到日期: {dates[:3]}")
-                break
-
-        # 提取版本號（Rev A, R2 等格式）
-        revision_match = re.search(r"[Rr]ev(?:ision)?[:\s]*([A-Z0-9]+)", text)
-        if revision_match:
-            metadata["revision"] = revision_match.group(1)
-            logger.debug(f"找到版本號: {metadata['revision']}")
-
-        # 根據文檔類型提取特定資訊
+        
+        # 從表單資料提取
+        if form_data:
+            # 常見的表單欄位映射
+            field_mappings = {
+                '版本': 'revision',
+                '版次': 'revision',
+                'Rev': 'revision',
+                '發行日期': 'issue_date',
+                '日期': 'issue_date',
+                'Date': 'issue_date',
+                '作者': 'author',
+                '簽核人': 'author',
+                '申請人': 'applicant',
+                '客戶': 'customer',
+                '客戶名稱': 'customer',
+                '部門': 'department',
+                '單位': 'department',
+            }
+            
+            for field_name, meta_key in field_mappings.items():
+                if field_name in form_data:
+                    metadata[meta_key] = form_data[field_name]
+        
+        # 從文字內容提取（如果表單資料沒有）
+        if 'revision' not in metadata:
+            revision_match = re.search(r'Rev[.:：\s]*([A-Z0-9]+)', text, re.IGNORECASE)
+            if revision_match:
+                metadata['revision'] = revision_match.group(1)
+        
+        if 'issue_date' not in metadata:
+            date_match = re.search(r'(\d{4}[-/]\d{1,2}[-/]\d{1,2})', text)
+            if date_match:
+                metadata['issue_date'] = date_match.group(1)
+        
+        # 根據文檔類型添加特定元資料
         if doc_type == "ECN":
-            # 設變通知特有：變更原因
-            reason_match = re.search(r"原因[：:]\s*([^\n]+)", text)
-            if reason_match:
-                metadata["change_reason"] = reason_match.group(1)
-
-        elif doc_type == "DFMEA":
-            # DFMEA 特有：嚴重度評分
-            severity_match = re.search(r"嚴重度[：:]\s*(\d+)", text)
-            if severity_match:
-                metadata["severity"] = int(severity_match.group(1))
-
+            metadata['change_type'] = cls._extract_change_type(text)
+        elif doc_type == "COMPLAINT":
+            metadata['severity'] = cls._extract_severity(text)
+        
         return metadata
-
+    
+    @classmethod
+    def _extract_change_type(cls, text: str) -> str:
+        """提取設變類型"""
+        if "緊急" in text:
+            return "緊急"
+        elif "一般" in text:
+            return "一般"
+        return "未分類"
+    
+    @classmethod
+    def _extract_severity(cls, text: str) -> str:
+        """提取客訴嚴重度"""
+        if "嚴重" in text or "critical" in text.lower():
+            return "嚴重"
+        elif "中等" in text or "moderate" in text.lower():
+            return "中等"
+        return "一般"
+    
     @classmethod
     def extract_keywords(cls, text: str, product_ids: List[str]) -> List[str]:
-        """
-        提取關鍵字
-
-        策略：
-        1. 檢查預定義的技術關鍵字
-        2. 加入產品編號作為關鍵字
-
-        Args:
-            text: 文檔內容
-            product_ids: 產品編號列表
-
-        Returns:
-            list: 關鍵字列表
-        """
-        keywords = []
-
-        # 福興特定技術關鍵字（基於您提供的 PDF 內容）
+        """提取關鍵字"""
+        keywords = set(product_ids)
+        
+        # 技術關鍵字
         tech_keywords = [
-            "排線",
-            "內側組合",
-            "外側組合",
-            "彈簧",
-            "套盤",
-            "把手",
-            "WiFi",
-            "deadbolt",
-            "轉軸",
-            "內軸筒",
-            "底板",
-            "裝飾",
-            "測試",
-            "品質",
-            "規格",
-            "公差",
-            "尺寸",
-            "材質",
-            "Hubspace",
-            "設變",
-            "改善",
-            "優化",
-            "不良",
-            "矯正",
+            "品質", "改善", "不良", "異常", "規格", "測試", "檢驗",
+            "material", "process", "quality", "defect", "improvement"
         ]
-
-        # 檢查每個關鍵字是否出現在文檔中
+        
         for keyword in tech_keywords:
-            if keyword in text:
-                keywords.append(keyword)
-
-        # 加入前5個產品編號作為關鍵字
-        keywords.extend(product_ids[:5])
-
-        # 去重並限制數量
-        result = list(set(keywords))[:15]
-        logger.debug(f"提取 {len(result)} 個關鍵字")
-
-        return result
-
+            if keyword in text.lower():
+                keywords.add(keyword)
+        
+        # 提取數字相關的關鍵字（可能是規格值）
+        spec_values = re.findall(r'\d+\.?\d*\s*(?:mm|cm|kg|g|°C|℃)', text)
+        keywords.update(spec_values[:5])  # 限制數量
+        
+        return list(keywords)[:20]  # 限制總數
+    
     @classmethod
-    def generate_summary(cls, text: str, max_length: int = 300) -> str:
+    def generate_summary(cls, text: str, form_data: Dict = None, max_length: int = 500) -> str:
         """
-        生成文檔摘要
-
-        策略：
-        1. 優先提取包含重要關鍵字的句子
-        2. 如果沒有，則取文檔開頭部分
-
-        Args:
-            text: 文檔內容
-            max_length: 摘要最大長度
-
-        Returns:
-            str: 摘要文字
+        生成摘要
+        
+        優先使用表單資料生成結構化摘要
         """
-        # 清理文本（合併空白字元）
-        text = re.sub(r"\s+", " ", text)
-        text = text.strip()
-
-        # 優先提取包含重要關鍵字的句子
-        important_patterns = [
-            r"[^。！？\n]*(?:變更|修改|調整|改善|優化)[^。！？\n]*",
-            r"[^。！？\n]*(?:問題|缺陷|不良|異常)[^。！？\n]*",
-        ]
-
-        summary_sentences = []
-        for pattern in important_patterns:
-            matches = re.findall(pattern, text)
-            summary_sentences.extend(matches[:2])  # 每種類型最多取2句
-
-        if summary_sentences:
-            summary = "。".join(summary_sentences)[:max_length]
+        summary_parts = []
+        
+        # 如果有表單資料，生成結構化摘要
+        if form_data:
+            important_fields = ['客戶', '客戶名稱', '問題描述', '不良現象', '改善對策', '原因分析']
+            for field in important_fields:
+                if field in form_data:
+                    value = form_data[field]
+                    if isinstance(value, list):
+                        value = ', '.join(value)
+                    summary_parts.append(f"{field}: {value[:100]}")
+        
+        # 如果摘要不夠，從文字提取
+        if len(' '.join(summary_parts)) < 100:
+            # 尋找重要句子
+            important_patterns = [
+                r"[^。！？\n]*(?:問題|不良|異常|原因)[^。！？\n]*",
+                r"[^。！？\n]*(?:改善|對策|解決|處理)[^。！？\n]*",
+                r"[^。！？\n]*(?:結果|效果|結論)[^。！？\n]*",
+            ]
+            
+            for pattern in important_patterns:
+                matches = re.findall(pattern, text)
+                summary_parts.extend(matches[:2])
+        
+        # 組合摘要
+        if summary_parts:
+            summary = "。".join(summary_parts)[:max_length]
         else:
-            # 沒有找到重要句子，取前 max_length 字元
+            # 沒有找到重要句子，取前段文字
             summary = text[:max_length]
-
+        
         if len(summary) == max_length:
             summary += "..."
-
+        
         return summary
-
+    
+    @classmethod
+    def debug_pdf_structure(cls, pdf_path: Path):
+        """
+        調試工具：分析 PDF 結構
+        
+        用於診斷 PDF 解析問題
+        """
+        logger.info(f"\n{'='*60}")
+        logger.info(f"PDF 結構分析: {pdf_path.name}")
+        logger.info(f"{'='*60}")
+        
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                logger.info(f"總頁數: {len(pdf.pages)}")
+                
+                for i, page in enumerate(pdf.pages[:3]):  # 只分析前3頁
+                    logger.info(f"\n--- 第 {i+1} 頁分析 ---")
+                    
+                    # 基本資訊
+                    logger.info(f"頁面尺寸: {page.width} x {page.height}")
+                    logger.info(f"字元數: {len(page.chars) if page.chars else 0}")
+                    logger.info(f"圖片數: {len(page.images)}")
+                    
+                    # 表格分析
+                    tables = page.extract_tables()
+                    logger.info(f"表格數: {len(tables)}")
+                    if tables:
+                        for j, table in enumerate(tables[:2]):
+                            if table:
+                                logger.info(f"  表格 {j+1}: {len(table)} 行 x {len(table[0]) if table[0] else 0} 列")
+                                # 顯示前3行
+                                for row_idx, row in enumerate(table[:3]):
+                                    logger.info(f"    行 {row_idx+1}: {row[:5] if row else 'Empty'}")
+                    
+                    # 文字預覽
+                    text = page.extract_text()
+                    if text:
+                        # 顯示前200字
+                        preview = text[:200].replace('\n', ' ')
+                        logger.info(f"文字預覽: {preview}...")
+                        
+                        # 檢查特殊字符
+                        pipe_count = text.count('|')
+                        if pipe_count > 10:
+                            logger.warning(f"發現大量管道符號 ({pipe_count} 個)，可能是表格解析問題")
+                    else:
+                        logger.warning("無法提取文字內容")
+                    
+                    # 檢查是否需要 OCR
+                    if not text and page.images:
+                        logger.warning("可能是掃描檔，建議啟用 OCR")
+                        
+        except Exception as e:
+            logger.error(f"PDF 結構分析失敗: {e}")
 
 # ============================================================================
-# 主處理服務
+# 主處理服務（整合增強功能）
 # ============================================================================
 class PDFProcessorService:
-    """
-    PDF 處理服務主類
-
-    職責：
-    1. 監控 PDF 檔案目錄
-    2. 協調解析和存儲流程
-    3. 管理處理狀態
-    4. 處理錯誤和重試
-    """
-
+    """PDF 處理服務主類別"""
+    
     def __init__(self):
         """初始化服務"""
         self.db = DatabaseManager()
+        self.parser = EnhancedPDFParser()  # 使用增強版解析器
         self.state = self.load_state()
         self.setup_directories()
-        logger.info("PDF 處理服務初始化完成")
+        logger.info("PDF 處理服務初始化完成（增強版）")
+        
+        # 在 DEBUG 模式下顯示配置
+        if DEBUG_MODE:
+            logger.debug(f"OCR 狀態: {'啟用' if ENABLE_OCR else '停用'}")
+            logger.debug(f"OCR 可用: {'是' if OCR_AVAILABLE else '否'}")
 
     def setup_directories(self):
-        """
-        建立必要的目錄結構
-        確保所有工作目錄存在
-        """
-        for dir_path in [
-            PDF_WATCH_DIR,
-            PDF_DONE_DIR,
-            PDF_ERROR_DIR,
-            PDF_PROCESSING_DIR,
-        ]:
+        """建立必要的目錄結構"""
+        for dir_path in [PDF_WATCH_DIR, PDF_DONE_DIR, PDF_ERROR_DIR, PDF_PROCESSING_DIR]:
             dir_path.mkdir(parents=True, exist_ok=True)
             logger.debug(f"確認目錄存在: {dir_path}")
 
     def load_state(self) -> Dict:
-        """
-        載入處理狀態
-
-        狀態檔案記錄每個處理過的檔案的資訊
-        避免重複處理相同檔案
-
-        Returns:
-            dict: 狀態字典
-        """
+        """載入處理狀態"""
         if STATE_FILE.exists():
             try:
-                with open(STATE_FILE, "r", encoding="utf-8") as f:
+                with open(STATE_FILE, 'r', encoding='utf-8') as f:
                     state = json.load(f)
-                    logger.info(f"載入狀態檔案，已處理 {len(state)} 個檔案")
-                    return state
+                logger.info(f"載入狀態檔案，已處理 {len(state)} 個檔案")
+                return state
             except Exception as e:
-                logger.warning(f"載入狀態檔案失敗: {e}，使用空狀態")
-                return {}
+                logger.error(f"載入狀態失敗: {e}")
         return {}
 
     def save_state(self):
-        """
-        儲存處理狀態
-        每處理完一個檔案就儲存，確保斷電也不會遺失進度
-        """
+        """儲存處理狀態"""
         try:
-            with open(STATE_FILE, "w", encoding="utf-8") as f:
+            STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with open(STATE_FILE, 'w', encoding='utf-8') as f:
                 json.dump(self.state, f, ensure_ascii=False, indent=2)
             logger.debug("狀態已儲存")
         except Exception as e:
             logger.error(f"儲存狀態失敗: {e}")
 
     def get_file_hash(self, file_path: Path) -> str:
-        """
-        計算檔案的 SHA256 雜湊值
-        用於判斷檔案是否已變更
-
-        Args:
-            file_path: 檔案路徑
-
-        Returns:
-            str: SHA256 雜湊值（16進制字串）
-        """
-        sha256 = hashlib.sha256()
+        """計算檔案的 MD5 雜湊值"""
+        hash_md5 = hashlib.md5()
         with open(file_path, "rb") as f:
-            # 分塊讀取，避免大檔案占用過多記憶體
             for chunk in iter(lambda: f.read(4096), b""):
-                sha256.update(chunk)
-        return sha256.hexdigest()
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
 
     def process_pdf(self, pdf_path: Path) -> bool:
         """
-        處理單一 PDF 檔案的完整流程
-
-        步驟：
-        1. 計算檔案雜湊
-        2. 移到處理中目錄（避免重複處理）
-        3. 解析 PDF 內容
-        4. 建立文檔物件
-        5. 存入資料庫
-        6. 移到完成或錯誤目錄
-
-        Args:
-            pdf_path: PDF 檔案路徑
-
-        Returns:
-            bool: 處理是否成功
+        處理單個 PDF 檔案（使用增強功能）
         """
         start_time = time.time()
         file_hash = self.get_file_hash(pdf_path)
@@ -886,79 +1235,85 @@ class PDFProcessorService:
 
         try:
             logger.info(f"📄 開始處理: {pdf_path.name} ({file_size/1024:.1f} KB)")
-
+            
             # 記錄開始處理
             self.db.log_processing(pdf_path.name, file_hash, "processing")
-
-            # 步驟1：移到處理中目錄（防止其他進程重複處理）
+            
+            # 如果是 DEBUG 模式，先分析 PDF 結構
+            if DEBUG_MODE:
+                self.parser.debug_pdf_structure(pdf_path)
+            
+            # 移到處理中目錄
             processing_path = PDF_PROCESSING_DIR / pdf_path.name
             pdf_path.rename(processing_path)
             logger.debug(f"檔案移至處理中: {processing_path}")
-
-            # 步驟2：提取文本
-            text, page_count = PDFParser.extract_text(processing_path)
-
+            
+            # 使用增強版文字提取
+            text, page_count = self.parser.extract_text_enhanced(processing_path)
+            
             if not text:
-                raise ValueError("無法提取文本內容（檔案可能損壞或為圖片）")
-
-            logger.info(f"  提取文本: {len(text)} 字元, {page_count} 頁")
-
-            # 步驟3：解析文檔資訊
-            doc_type = PDFParser.detect_doc_type(text, processing_path.stem)
-            product_ids = PDFParser.extract_product_ids(text)
-            metadata = PDFParser.extract_metadata(text, doc_type)
-            keywords = PDFParser.extract_keywords(text, product_ids)
-            summary = PDFParser.generate_summary(text)
-
-            # 從檔名提取文檔編號（福興的命名規則）
+                raise ValueError("無法提取文字內容")
+            
+            logger.info(f"  提取文字: {len(text)} 字元, {page_count} 頁")
+            
+            # 提取表單資料（新增功能）
+            form_data = None
+            pdf_type = self.parser.detect_pdf_type(processing_path)
+            if pdf_type in ["TABLE_FORM", "MIXED"]:
+                form_data = self.parser.extract_form_data(processing_path)
+                if form_data:
+                    logger.info(f"  提取表單欄位: {len(form_data)} 個")
+            
+            # 解析文檔資訊
+            doc_type = self.parser.detect_doc_type(text, processing_path.stem)
+            product_ids = self.parser.extract_product_ids(text)
+            metadata = self.parser.extract_metadata(text, doc_type, form_data)
+            keywords = self.parser.extract_keywords(text, product_ids)
+            summary = self.parser.generate_summary(text, form_data)
+            
+            # 從檔名提取文檔編號
             doc_number_match = re.search(
                 r"[A-Z]{2,}-[A-Z]-\d{2}-[A-Z]-\d{3}|L\d{6}[A-Z]?\d?",
-                processing_path.stem,
+                processing_path.stem
             )
-            doc_number = (
-                doc_number_match.group(0) if doc_number_match else processing_path.stem
-            )
-
-            # 步驟4：建立文檔物件
+            doc_number = doc_number_match.group(0) if doc_number_match else processing_path.stem[:50]
+            
+            # 建立文檔物件
             doc = TechnicalDocument(
-                doc_id=hashlib.md5(processing_path.name.encode()).hexdigest(),
+                doc_id=file_hash,
                 doc_type=doc_type,
                 doc_number=doc_number,
-                title=processing_path.stem.replace("_", " "),  # 將底線轉為空格
+                title=processing_path.stem[:200],
                 product_ids=product_ids,
-                revision=metadata.get("revision"),
-                issue_date=(
-                    metadata.get("dates", [None])[0] if metadata.get("dates") else None
-                ),
-                department=None,  # 可從文檔內容進一步提取
-                author=None,  # 可從文檔內容進一步提取
+                revision=metadata.get('revision'),
+                issue_date=metadata.get('issue_date'),
+                author=metadata.get('author'),
                 content=text,
                 summary=summary,
                 keywords=keywords,
                 metadata=metadata,
-                file_path=str(processing_path),
-                file_hash=file_hash,
-                created_at=datetime.now().isoformat(),
-                updated_at=datetime.now().isoformat(),
-                page_count=page_count,
+                file_name=processing_path.name,
                 file_size=file_size,
+                page_count=page_count,
+                created_at=datetime.now(),
+                form_data=form_data  # 新增：儲存表單資料
             )
-
-            logger.info(
-                f"  文檔資訊: 類型={doc_type}, 產品數={len(product_ids)}, 關鍵字數={len(keywords)}"
-            )
-
-            # 步驟5：存入資料庫
-            if self.db.upsert_document(doc):
+            
+            # 存入資料庫
+            if self.db.save_document(doc):
                 # 成功：移到完成目錄
                 done_path = PDF_DONE_DIR / processing_path.name
                 processing_path.rename(done_path)
-
+                logger.debug(f"檔案移至完成目錄: {done_path}")
+                
                 process_time = int((time.time() - start_time) * 1000)
                 self.db.log_processing(
-                    pdf_path.name, file_hash, "success", process_time_ms=process_time
+                    pdf_path.name,
+                    file_hash,
+                    "success",
+                    process_time_ms=process_time
                 )
-
+                
                 # 更新狀態
                 self.state[pdf_path.name] = {
                     "hash": file_hash,
@@ -968,177 +1323,182 @@ class PDFProcessorService:
                     "page_count": page_count,
                     "doc_type": doc_type,
                     "product_count": len(product_ids),
+                    "has_form_data": bool(form_data)  # 記錄是否有表單資料
                 }
                 self.save_state()
-
+                
                 logger.info(f"  ✅ 成功處理，耗時: {process_time}ms")
                 return True
             else:
                 raise Exception("資料庫寫入失敗")
-
+                
         except Exception as e:
             # 失敗：移到錯誤目錄
             error_msg = str(e)
             logger.error(f"  ❌ 處理失敗: {error_msg}")
-
+            
             # 確保檔案在處理中目錄
             if processing_path.exists():
                 error_path = PDF_ERROR_DIR / pdf_path.name
                 processing_path.rename(error_path)
                 logger.debug(f"檔案移至錯誤目錄: {error_path}")
-
+            
             process_time = int((time.time() - start_time) * 1000)
             self.db.log_processing(
                 pdf_path.name,
                 file_hash,
                 "error",
                 error_message=error_msg,
-                process_time_ms=process_time,
+                process_time_ms=process_time
             )
-
+            
             # 記錄錯誤狀態
             self.state[pdf_path.name] = {
                 "hash": file_hash,
                 "processed_at": datetime.now().isoformat(),
                 "status": "error",
-                "error": error_msg,
+                "error": error_msg
             }
             self.save_state()
             return False
 
     def scan_and_process(self):
-        """
-        掃描監控目錄並處理 PDF 檔案
-
-        流程：
-        1. 掃描 incoming 目錄
-        2. 檢查每個檔案是否已處理
-        3. 批次處理新檔案
-        4. 記錄處理結果
-
-        Returns:
-            int: 本次處理的檔案數
-        """
-        # 掃描所有 PDF 檔案
+        """掃描監控目錄並處理 PDF 檔案"""
         pdf_files = sorted(PDF_WATCH_DIR.glob("*.pdf"))
-
+        
         if not pdf_files:
             return 0
-
+        
         logger.info(f"🔍 發現 {len(pdf_files)} 個待處理檔案")
-
+        
         processed = 0
-        # 限制每批處理的檔案數，避免記憶體問題
         for pdf_path in pdf_files[:PROCESS_BATCH_SIZE]:
-            # 檢查是否應該停止
             if should_stop:
                 logger.info("收到停止信號，中斷處理")
                 break
-
-            # 檢查是否已處理過此檔案
+            
+            # 檢查是否已處理過
             file_hash = self.get_file_hash(pdf_path)
             if pdf_path.name in self.state:
                 if self.state[pdf_path.name].get("hash") == file_hash:
                     logger.info(f"⏭️ 跳過已處理: {pdf_path.name}")
-                    # 已處理過的檔案移到完成目錄
                     done_path = PDF_DONE_DIR / pdf_path.name
                     pdf_path.rename(done_path)
                     continue
-
+            
             # 處理檔案
             if self.process_pdf(pdf_path):
                 processed += 1
-
-            # 短暫休息，避免 CPU 過載
+            
+            # 短暫休息
             time.sleep(1)
-
+        
         return processed
 
     def run(self):
-        """
-        主執行循環
-        持續監控目錄並處理新檔案
-        """
-        logger.info("=" * 60)
-        logger.info("🚀 PDF 處理服務啟動")
+        """主執行循環"""
+        logger.info("="*60)
+        logger.info("🚀 PDF 處理服務啟動（增強版）")
         logger.info(f"📁 監控目錄: {PDF_WATCH_DIR}")
-        logger.info(f"⏱  掃描間隔: {SCAN_INTERVAL} 秒")
+        logger.info(f"⏱ 掃描間隔: {SCAN_INTERVAL} 秒")
         logger.info(f"📦 批次大小: {PROCESS_BATCH_SIZE}")
         logger.info(f"🔍 OCR 狀態: {'啟用' if ENABLE_OCR else '關閉'}")
-        logger.info("=" * 60)
-
-        no_file_count = 0  # 連續無檔案的次數
-
+        logger.info(f"🐛 調試模式: {'開啟' if DEBUG_MODE else '關閉'}")
+        logger.info("="*60)
+        
+        # 顯示資料庫統計
+        stats = self.db.get_statistics()
+        if stats:
+            logger.info("📊 目前資料庫狀態：")
+            logger.info(f"  總文檔數: {stats.get('total_documents', 0)}")
+            if 'documents_by_type' in stats:
+                for doc_type, count in stats['documents_by_type'].items():
+                    logger.info(f"    - {doc_type}: {count} 份")
+            logger.info(f"  今日處理: {stats.get('today_processed', 0)} 份")
+            if stats.get('today_errors', 0) > 0:
+                logger.warning(f"  今日錯誤: {stats.get('today_errors', 0)} 份")
+        
+        logger.info("="*60)
+        
+        no_file_count = 0
+        
         try:
             while not should_stop:
                 try:
-                    # 執行一次掃描和處理
                     processed = self.scan_and_process()
-
+                    
                     if processed > 0:
                         no_file_count = 0
                         logger.info(f"✨ 本輪處理完成，共 {processed} 個檔案")
+                        
+                        # 每處理完一批就顯示統計
+                        stats = self.db.get_statistics()
+                        if stats:
+                            logger.info(f"📊 累計處理 {stats.get('total_documents', 0)} 份文檔")
                     else:
                         no_file_count += 1
-
-                        # 動態調整掃描間隔（無檔案時逐漸延長間隔）
-                        sleep_time = min(SCAN_INTERVAL * (1 + no_file_count // 10), 300)
-
-                        # 每10次無檔案才輸出一次日誌，避免日誌過多
-                        if no_file_count % 10 == 0:
-                            logger.info(f"💤 無新檔案，等待 {sleep_time} 秒...")
-
-                    # 休眠等待下次掃描
-                    sleep_time = 5 if processed > 0 else SCAN_INTERVAL
-                    for _ in range(sleep_time):
-                        if should_stop:
-                            break
-                        time.sleep(1)  # 每秒檢查一次停止信號
-
+                        
+                        # 動態調整掃描間隔
+                        if no_file_count > 10:
+                            sleep_time = min(300, SCAN_INTERVAL * 2)
+                        else:
+                            sleep_time = SCAN_INTERVAL
+                        
+                        # 每隔一段時間顯示系統仍在運作
+                        if no_file_count % 5 == 0:
+                            logger.debug(f"💤 系統運作中，等待新檔案... (已等待 {no_file_count} 次)")
+                        
+                        time.sleep(sleep_time)
+                        
+                except KeyboardInterrupt:
+                    logger.info("收到鍵盤中斷")
+                    break
                 except Exception as e:
-                    logger.error(f"處理週期錯誤: {e}", exc_info=True)
-                    time.sleep(30)  # 錯誤後等待較長時間
-
-        except KeyboardInterrupt:
-            logger.info("收到鍵盤中斷")
+                    logger.error(f"處理循環錯誤: {e}")
+                    time.sleep(30)
+                    
         finally:
-            logger.info("🛑 服務正在關閉...")
-            self.db.close()
-            logger.info("👋 服務已停止")
+            self.cleanup()
 
+    def cleanup(self):
+        """清理資源"""
+        logger.info("正在清理資源...")
+        self.save_state()
+        self.db.close()
+        logger.info("👋 PDF 處理服務已關閉")
 
 # ============================================================================
-# 主程式入口
+# 主程式進入點
 # ============================================================================
-def main():
-    """
-    主程式入口
-
-    步驟：
-    1. 等待 MySQL 就緒
-    2. 初始化服務
-    3. 啟動主循環
-    """
-    # 等待 MySQL 就緒（最多等待60秒）
-    logger.info("⏳ 等待 MySQL 就緒...")
-    for i in range(30):
-        try:
-            db = DatabaseManager()
-            db.close()
-            logger.info("✅ MySQL 連線成功")
-            break
-        except Exception as e:
-            if i < 29:
-                logger.info(f"等待 MySQL... ({i+1}/30)")
-                time.sleep(2)
-            else:
-                logger.error(f"❌ 無法連線到 MySQL: {e}")
-                sys.exit(1)
-
-    # 啟動服務
-    service = PDFProcessorService()
-    service.run()
-
-
 if __name__ == "__main__":
-    main()
+    try:
+        # 檢查是否需要重建資料庫表格
+        # 可以透過環境變數控制
+        REBUILD_TABLES = os.getenv("REBUILD_TABLES", "false").lower() == "true"
+        
+        if REBUILD_TABLES:
+            logger.warning("⚠️ 準備重建資料庫表格...")
+            logger.warning("這將刪除所有現有資料！")
+            
+            # 給使用者 5 秒鐘的時間中斷
+            import time
+            for i in range(5, 0, -1):
+                logger.warning(f"將在 {i} 秒後開始...（按 Ctrl+C 中斷）")
+                time.sleep(1)
+            
+            # 執行重建
+            temp_db = DatabaseManager()
+            temp_db.drop_tables_if_needed(confirm=True)
+            temp_db.close()
+            logger.info("表格已刪除，將重新建立...")
+        
+        # 正常啟動服務
+        service = PDFProcessorService()
+        service.run()
+        
+    except KeyboardInterrupt:
+        logger.info("使用者中斷執行")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"服務啟動失敗: {e}")
+        sys.exit(1)

@@ -287,6 +287,51 @@ services:
       retries: 3
       start_period: 60s
 
+  pdf-parser:
+    build:
+      context: ./scripts/pdf_parser
+      dockerfile: Dockerfile.pdf_parser
+    container_name: pdf_parser
+    depends_on:
+      mysql:
+        condition: service_healthy
+      pdf_processor:
+        condition: service_healthy
+    environment:
+    # MySQL 連線設定
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=fuhsin_erp_demo
+      
+    # 處理參數
+      - SCAN_INTERVAL=${PARSER_SCAN_INTERVAL:-60}     # 掃描間隔（秒）
+      - BATCH_SIZE=${PARSER_BATCH_SIZE:-10}           # 每批處理文件數
+      - DEBUG_MODE=${DEBUG_MODE:-false}
+      
+    # 日誌設定
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./scripts/document_parser:/app:ro
+      - ./state/parser:/state
+      - ./logs/parser:/logs:rw  
+    working_dir: /app
+  # 健康檢查
+    healthcheck:
+      test: ["CMD", "python", "-c", "import pymysql; pymysql.connect(host='mysql', user='root', password='root')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - elastic
+  # 資源限制
+    mem_limit: 2g
+    cpus: '1.0'
+  
   # 將資料表中資料同步至 ES
   db-sync:
     build:
@@ -297,6 +342,8 @@ services:
       mysql:
         condition: service_healthy
       elasticsearch:
+        condition: service_healthy
+      pdf_parser:
         condition: service_healthy
     environment:
     # 資料庫（SQLAlchemy DSN；統一用 utf8mb4）
@@ -311,7 +358,7 @@ services:
       - PARALLEL_THREADS=${PARALLEL_THREADS:-4}
       - SLEEP_SECONDS=${DB_SYNC_INTERVAL:-30}
     volumes:
-      # - ./scripts:/app/scripts:ro        # 放你的 db-sync-2.py
+      - ./scripts/db-sync-2:/app:ro        # 放你的 db-sync-2.py
       - ./state:/state                 # 狀態檔持久化（.sync_state.json）
       - ./logs/db-sync-2:/logs:rw
     working_dir: /app

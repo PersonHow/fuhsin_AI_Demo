@@ -1,0 +1,6 @@
+# 資料庫連線
+pymysql==1.1.0
+cryptography==41.0.7
+
+# 日誌和工具
+python-dateutil==2.8.2

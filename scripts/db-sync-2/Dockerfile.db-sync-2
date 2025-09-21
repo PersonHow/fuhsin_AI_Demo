@@ -7,7 +7,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 複製腳本
-COPY db-sync-2.py .
+# COPY db-sync-2.py .
 
 ENV PYTHONUNBUFFERED=1
 
