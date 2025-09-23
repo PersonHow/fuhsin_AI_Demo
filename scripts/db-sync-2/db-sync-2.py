@@ -1,585 +1,626 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-MySQL to Elasticsearch 同步服務 - 支援技術文件
-統一使用 last_modified 欄位和 ISO 8601 with timezone 格式
+MySQL to Elasticsearch 同步服務 - 修正版
+修正 id 欄位問題、索引名稱、日期處理
 """
 
-import os, json, time, re, logging, pandas as pd
-from datetime import datetime, timedelta
-from typing import Dict, List, Generator
-from sqlalchemy import create_engine
-from elasticsearch import Elasticsearch
-from elasticsearch.helpers import parallel_bulk
+import os, sys, json, signal
+import time, logging, pymysql, hashlib
+from datetime import datetime, date, timezone
+from typing import Dict, List, Optional, Any
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 
-# 配置
-DB_URL = os.getenv("DB_URL", "mysql+pymysql://root:root@mysql:3306/fuhsin_erp_demo")
-ES_URL = os.getenv("ES_URL", "http://elasticsearch:9200")
+from elasticsearch import Elasticsearch, helpers
+
+# 環境變數配置
+MYSQL_HOST = os.getenv("MYSQL_HOST", "mysql")
+MYSQL_PORT = int(os.getenv("MYSQL_PORT", "3306"))
+MYSQL_USER = os.getenv("MYSQL_USER", "root")
+MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "root")
+MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "fuhsin_erp_demo")
+
+ES_HOST = os.getenv("ES_HOST", "elasticsearch")
+ES_PORT = int(os.getenv("ES_PORT", "9200"))
 ES_USER = os.getenv("ES_USER", "elastic")
-ES_PASS = os.getenv("ES_PASS", "admin@12345")
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", "2000"))
+ES_PASSWORD = os.getenv("ES_PASS", "admin@12345")
+
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", "1000"))
 PAGE_SIZE = int(os.getenv("PAGE_SIZE", "5000"))
 PARALLEL_THREADS = int(os.getenv("PARALLEL_THREADS", "4"))
 SLEEP_SECONDS = int(os.getenv("SLEEP_SECONDS", "30"))
-STATE_PATH = "/state/.sync_state.json"
-LOG_PATH = "/logs/db-sync/db_sync.log"
 
-# 日誌設定
-os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
+# 狀態檔案路徑
+STATE_FILE = Path("/state/sync_state.json")
+STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.FileHandler(LOG_PATH), logging.StreamHandler()]
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# 資料庫連線
-engine = create_engine(
-    DB_URL, pool_size=20, pool_pre_ping=True,
-    connect_args={"charset": "utf8mb4", "connect_timeout": 10}
-)
-
-# ES客戶端
-def get_es_client():
-    """建立 Elasticsearch 客戶端連線"""
-    return Elasticsearch(
-        [ES_URL],
-        basic_auth=(ES_USER, ES_PASS) if ES_USER else None,
-        verify_certs=False, timeout=30, max_retries=3
-    )
-
-def format_date_for_es(date_value):
-    """
-    統一處理日期格式，輸出為 ISO 8601 with timezone
-    目標格式: 2025-09-15T16:09:22+00:00
-    """
-    if pd.isna(date_value) or date_value is None:
-        # 返回當前時間的 ISO 格式帶時區
-        return datetime.now().strftime('%Y-%m-%dT%H:%M:%S+00:00')
+class ElasticsearchManager:
+    """Elasticsearch 連線管理器"""
     
-    try:
-        dt = None
-        
-        if isinstance(date_value, str):
-            # 移除毫秒和時區資訊（如果有的話）
-            date_value = date_value.split('.')[0].split('+')[0].split('Z')[0]
-            
-            # 嘗試各種格式解析
-            for fmt in [
-                '%Y-%m-%d %H:%M:%S',  # MySQL 標準格式
-                '%Y-%m-%dT%H:%M:%S',   # ISO 格式（無時區）
-                '%Y/%m/%d %H:%M:%S',
-                '%Y-%m-%d',
-                '%Y/%m/%d',
-                '%Y%m%d'
-            ]:
-                try:
-                    dt = datetime.strptime(date_value, fmt)
-                    break
-                except ValueError:
-                    continue
-                    
-            if not dt:
-                # 最後嘗試 pandas 解析
-                try:
-                    dt = pd.to_datetime(date_value)
-                except:
-                    logger.warning(f"無法解析日期: {date_value}")
-                    return datetime.now().strftime('%Y-%m-%dT%H:%M:%S+00:00')
-                    
-        elif hasattr(date_value, 'to_pydatetime'):
-            # pandas Timestamp 物件
-            dt = date_value.to_pydatetime()
-        elif isinstance(date_value, datetime):
-            # datetime 物件
-            dt = date_value
-        else:
-            # 其他類型，嘗試轉換
-            try:
-                dt = pd.to_datetime(date_value)
-            except:
-                return datetime.now().strftime('%Y-%m-%dT%H:%M:%S+00:00')
-        
-        # 統一輸出格式：ISO 8601 with timezone (+00:00)
-        # 這個格式所有 ES 索引都能接受
-        return dt.strftime('%Y-%m-%dT%H:%M:%S+00:00')
-        
-    except Exception as e:
-        logger.warning(f"日期格式化失敗: {date_value}, 錯誤: {e}")
-        return datetime.now().strftime('%Y-%m-%dT%H:%M:%S+00:00')
-
-# 狀態管理
-def load_state() -> Dict:
-    """載入同步狀態"""
-    os.makedirs(os.path.dirname(STATE_PATH), exist_ok=True)
-    if os.path.exists(STATE_PATH):
+    def __init__(self):
+        self.es = Elasticsearch(
+            [f"http://{ES_HOST}:{ES_PORT}"],
+            http_auth=(ES_USER, ES_PASSWORD),
+            verify_certs=False,
+            timeout=30,
+            max_retries=3,
+            retry_on_timeout=True
+        )
+        self.verify_connection()
+        self.init_indices()
+    
+    def verify_connection(self):
+        """驗證連線"""
         try:
-            with open(STATE_PATH, 'r') as f:
-                state = json.load(f)
-                logger.info(f"載入狀態: {list(state.keys())}")
-                return state
-        except: 
-            pass
-    return {}
-
-def save_state(state: Dict):
-    """儲存同步狀態"""
-    try:
-        with open(STATE_PATH, 'w') as f:
-            json.dump(state, f, indent=2, default=str)
-    except Exception as e:
-        logger.error(f"儲存狀態失敗: {e}")
-
-def ensure_index(es, index_name):
-    """
-    確保索引存在並有正確的映射
-    統一使用 last_modified 欄位名稱
-    """
-    
-    # 最寬鬆的日期格式組合，確保能接受各種格式
-    date_formats = [
-        "strict_date_optional_time",           # ISO 8601 標準格式
-        "yyyy-MM-dd HH:mm:ss",                 # MySQL 格式
-        "yyyy-MM-dd'T'HH:mm:ss",              # ISO 不帶時區
-        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",       # ISO 帶毫秒
-        "yyyy-MM-dd'T'HH:mm:ssZ",             # ISO 帶時區
-        "yyyy-MM-dd'T'HH:mm:ssZZ",            # ISO 帶時區（另一種）
-        "yyyy-MM-dd",                          # 只有日期
-        "epoch_millis"                         # Unix timestamp
-    ]
-    date_format = "||".join(date_formats)
-    
-    # 如果索引已存在
-    if es.indices.exists(index=index_name):
-        try:
-            # 檢查當前映射
-            mapping = es.indices.get_mapping(index=index_name)
-            logger.info(f"索引 {index_name} 已存在")
-            
-            # 檢查日期欄位格式（檢查 last_modified 和 updated_at）
-            props = mapping[index_name]['mappings'].get('properties', {})
-            
-            # 如果有 updated_at 欄位，警告需要重建
-            if 'updated_at' in props:
-                current_format = props['updated_at'].get('format', '')
-                logger.warning(f"⚠️  {index_name} 使用 updated_at 欄位，建議重建以使用 last_modified")
-                logger.info(f"當前 updated_at 格式: {current_format}")
-                
-            # 檢查 last_modified 欄位
-            if 'last_modified' in props:
-                current_format = props['last_modified'].get('format', '')
-                logger.info(f"當前 last_modified 格式: {current_format}")
-                    
+            info = self.es.info()
+            logger.info(f"連線到 Elasticsearch {info['version']['number']}")
         except Exception as e:
-            logger.warning(f"檢查索引映射失敗: {e}")
-    else:
-        # 創建新索引，統一使用 last_modified 欄位
-        mapping = {
+            logger.error(f"無法連線到 Elasticsearch: {e}")
+            raise
+    
+    def init_indices(self):
+        """初始化索引（加上 erp_ 前綴）"""
+        indices = {
+            'erp_product_master': self._get_product_mapping(),
+            'erp_product_warehouse': self._get_warehouse_mapping(),
+            'erp_customer_complaint': self._get_complaint_mapping(),
+            'erp_structured_documents': self._get_documents_mapping()
+        }
+        
+        for index_name, mapping in indices.items():
+            try:
+                if not self.es.indices.exists(index=index_name):
+                    self.es.indices.create(index=index_name, body=mapping)
+                    logger.info(f"建立索引: {index_name}")
+                else:
+                    logger.debug(f"索引已存在: {index_name}")
+            except Exception as e:
+                logger.error(f"建立索引 {index_name} 失敗: {e}")
+    
+    def _get_product_mapping(self):
+        return {
             "settings": {
-                "number_of_shards": 2,
-                "number_of_replicas": 1,
-                "index.mapping.ignore_malformed": True,  # 忽略格式錯誤
-                "index.mapping.coerce": True             # 自動轉換類型
+                "number_of_shards": 1,
+                "number_of_replicas": 0,
+                "refresh_interval": "30s"
             },
             "mappings": {
                 "properties": {
-                    # 基本欄位
-                    "doc_id": {"type": "keyword"},
-                    "type": {"type": "keyword"},
-                    "title": {"type": "text", "analyzer": "standard"},
-                    "content": {"type": "text", "analyzer": "standard"},
-                    "product_ids": {"type": "keyword"},
-                    "status": {"type": "keyword"},
-                    "metadata": {"type": "object", "enabled": True, "dynamic": True},
-                    
-                    # 統一使用 last_modified 作為時間欄位
-                    "last_modified": {
-                        "type": "date",
-                        "format": date_format,
-                        "ignore_malformed": True
-                    },
-                    
-                    # 如果有創建時間，也使用相同格式
-                    "created_at": {
-                        "type": "date",
-                        "format": date_format,
-                        "ignore_malformed": True
-                    }
+                    "product_id": {"type": "keyword"},
+                    "product_name": {"type": "text"},
+                    "category": {"type": "keyword"},
+                    "price": {"type": "float"},
+                    "stock_quantity": {"type": "integer"},
+                    "last_modified": {"type": "date"}
                 }
             }
         }
-        
-        es.indices.create(index=index_name, body=mapping)
-        logger.info(f"✅ 創建索引: {index_name} (使用 last_modified 欄位)")
+    
+    def _get_warehouse_mapping(self):
+        return {
+            "settings": {
+                "number_of_shards": 1,
+                "number_of_replicas": 0,
+                "refresh_interval": "30s"
+            },
+            "mappings": {
+                "properties": {
+                    "warehouse_id": {"type": "keyword"},
+                    "product_id": {"type": "keyword"},
+                    "quantity": {"type": "integer"},
+                    "location": {"type": "keyword"},
+                    "last_modified": {"type": "date"}
+                }
+            }
+        }
+    
+    def _get_complaint_mapping(self):
+        return {
+            "settings": {
+                "number_of_shards": 1,
+                "number_of_replicas": 0,
+                "refresh_interval": "30s"
+            },
+            "mappings": {
+                "properties": {
+                    "complaint_id": {"type": "keyword"},
+                    "customer_name": {"type": "text"},
+                    "product_id": {"type": "keyword"},
+                    "description": {"type": "text"},
+                    "status": {"type": "keyword"},
+                    "created_date": {"type": "date"},
+                    "last_modified": {"type": "date"}
+                }
+            }
+        }
+    
+    def _get_documents_mapping(self):
+        return {
+            "settings": {
+                "number_of_shards": 1,
+                "number_of_replicas": 0,
+                "refresh_interval": "30s"
+            },
+            "mappings": {
+                "properties": {
+                    "original_doc_id": {"type": "keyword"},
+                    "doc_type": {"type": "keyword"},
+                    "doc_number": {"type": "keyword"},
+                    "doc_date": {"type": "date"},
+                    "file_name": {"type": "text"},
+                    "file_url": {"type": "keyword"},
+                    "product_category": {"type": "keyword"},
+                    "product_codes": {"type": "keyword"},
+                    "product_names": {"type": "text"},
+                    "applicant": {"type": "keyword"},
+                    "department": {"type": "keyword"},
+                    "summary": {"type": "text"},
+                    "keywords": {"type": "keyword"},
+                    "status": {"type": "keyword"},
+                    "priority": {"type": "keyword"},
+                    "last_modified": {"type": "date"}
+                }
+            }
+        }
+    
 
-# 產品快取類別
-class ProductCache:
-    """產品資訊快取，用於快速查詢產品名稱"""
+    def bulk_index(self, index_name: str, documents: List[Dict]) -> int:
+        """批次索引文件"""
+        if not documents:
+            return 0
+        def sanitize_doc(doc):
+            clean = {}
+            for k, v in doc.items():
+                if isinstance(v, (bytes, bytearray, memoryview)):
+                    v = bytes(v).decode("utf-8", errors="ignore")
+                clean[k] = v
+            return clean
+
+        def ensure_doc_id(doc):
+            for key in ("id", "product_id", "complaint_id", "original_doc_id"):
+                if key in doc and doc[key] not in (None, ""):
+                    return str(doc[key])
+            # fallback：穩定雜湊
+            blob = json.dumps(doc, sort_keys=True, default=str).encode("utf-8")
+            return hashlib.md5(blob).hexdigest()
+        
+        actions = []
+        for doc in documents:
+            # 使用適當的 ID 欄位
+            doc = sanitize_doc(doc)
+            doc_id = ensure_doc_id(doc)
+            actions.append({
+                "_index": index_name,
+                "_id": doc_id,
+                "_source": doc
+            })
+        
+        try:
+            success, errors = helpers.bulk(
+                self.es,
+                actions,
+                chunk_size=500,
+                raise_on_error=False
+            )
+            
+            if errors:
+                logger.warning(f"部分文件索引失敗")
+            
+            logger.info(f"成功索引 {success} 個文件到 {index_name}")
+            return success
+            
+        except Exception as e:
+            logger.error(f"批次索引失敗: {e}")
+            return 0
+
+class DatabaseManager:
+    """MySQL 資料庫管理器"""
     
     def __init__(self):
-        self.products = {}
-        
-    def refresh(self):
-        """從資料庫載入所有產品資訊"""
-        try:
-            with engine.connect() as conn:
-                df = pd.read_sql("SELECT product_id, product_name FROM product_master_a", conn)
-                self.products = {
-                    str(row['product_id']): str(row['product_name']) 
-                    for _, row in df.iterrows() 
-                    if pd.notna(row['product_id'])
-                }
-                logger.info(f"載入 {len(self.products)} 個產品到快取")
-        except Exception as e:
-            logger.error(f"載入產品快取失敗: {e}")
-            self.products = {}
+        self.db_cfg = dict(
+            host=MYSQL_HOST,
+            port=MYSQL_PORT,
+            user=MYSQL_USER,
+            password=MYSQL_PASSWORD,
+            database=MYSQL_DATABASE,
+            charset='utf8mb4',
+            autocommit=True,
+            cursorclass=pymysql.cursors.DictCursor,
+            connect_timeout=10,
+            read_timeout=30,
+            write_timeout=30,
+        )
+        self.check_table_structure()
+
+    def _new_connection(self):
+        return pymysql.connect(**self.db_cfg)
     
-    def get_name(self, pid):
-        """根據產品ID取得產品名稱"""
-        if not pid or pd.isna(pid):
-            return "未知產品"
-        return self.products.get(str(pid), str(pid))
-
-# 創建全域產品快取實例
-product_cache = ProductCache()
-
-def fetch_data_in_pages(table: str, since_time, page_size: int = PAGE_SIZE) -> Generator:
-    """
-    分頁查詢資料，避免記憶體溢出
-    """
-    offset = 0
-    with engine.connect() as conn:
+    def get_connection(self):
+        return self._new_connection()
+    
+    @contextmanager
+    def _conn_ctx(self):
+        """ 一次性連線 context manager : 開 -> 用 -> 關 """
+        conn = self._new_connection()
+        try:
+            yield conn
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+    
+    def _run_query_with_retry(self, sql, params=(), *, max_retries=3):
+        """針對偶發封包/EOF錯誤做重試，每次都用新連線"""
+        attempt = 0
         while True:
-            if since_time:
-                # 確保 since_time 是字串格式
-                if isinstance(since_time, dict):
-                    logger.error(f"錯誤的時間格式: {since_time}")
-                    since_time = None
-                    query = f"SELECT * FROM {table} ORDER BY last_modified LIMIT {page_size} OFFSET {offset}"
-                else:
-                    since_str = since_time if isinstance(since_time, str) else str(since_time)
-                    # 使用參數化查詢避免 SQL 注入
-                    query = f"SELECT * FROM {table} WHERE last_modified > '{since_str}' ORDER BY last_modified LIMIT {page_size} OFFSET {offset}"
-            else:
-                query = f"SELECT * FROM {table} ORDER BY last_modified LIMIT {page_size} OFFSET {offset}"
-            
-            df = pd.read_sql(query, conn)
-            if df.empty: 
-                break
-            
-            logger.info(f"{table}: 取得 {len(df)} 筆資料 (offset={offset})")
-            yield df
-            
-            offset += page_size
-            if offset >= 1000000:  # 防止無限循環
-                break
+            attempt += 1
+            with self._conn_ctx() as conn:
+                try:
+                    with conn.cursor() as cur:
+                        cur.execute(sql, params)
+                        rows = cur.fetchall()
+                        return list(rows or [])
+                except (pymysql.err.OperationalError, pymysql.err.InternalError) as e:
+                    # 常見於 Packet sequence/EOF/unpack 半包等
+                    if attempt >= max_retries:
+                        raise
+                    time.sleep(min(0.2 * attempt, 1.0))
 
-def process_products(df):
-    """處理產品主檔資料"""
-    if df.empty:
-        return
+    def check_table_structure(self):
+        """檢查表結構，確認主鍵欄位"""
+        sql = "/* 你的檢查 SQL，例如 DESCRIBE 或 SELECT 1 */ SELECT 1"
+        # 用 context manager，一次性開關
+        with self._conn_ctx() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql)
+                cur.fetchall()
+    
+    def fetch_product_master(self, last_modified: str, limit: int) -> List[Dict]:
+        """獲取產品主檔（根據實際欄位調整）"""
+        # 使用實際存在的欄位排序
+        sql = """
+        SELECT * FROM product_master_a
+        WHERE last_modified > %s
+        ORDER BY last_modified, product_id
+        LIMIT %s
+        """
         
-    for _, row in df.iterrows():
-        if pd.isna(row.get('product_id')):
-            continue
-            
-        pid = str(row['product_id'])
-            
-        yield {
-            "_id": f"product_{pid}",
-            "_index": "erp-products",
-            "doc_id": f"product_{pid}",
-            "title": f"[{pid}] {row.get('product_name', '')}",
-            "content": f"{row.get('description', '')} {row.get('specifications', '')}",
-            "product_ids": [pid],
-            "metadata": {
-                "category": row.get('category'),
-                "supplier": row.get('supplier'),
-                "price": float(row['price']) if pd.notna(row.get('price')) else None
-            },
-            # 統一使用 last_modified 欄位名稱
-            "last_modified": format_date_for_es(row.get('last_modified'))
-        }
-
-def process_warehouse(df):
-    """處理倉儲資料"""
-    if df.empty:
-        return
-        
-    for idx, row in df.iterrows():
-        # 使用 index 或其他唯一識別碼
-        # 檢查可能的主鍵欄位名稱
-        if 'warehouse_id' in row and pd.notna(row['warehouse_id']):
-            wid = str(row['warehouse_id'])
-        elif 'id' in row and pd.notna(row['id']):
-            wid = str(row['id'])
-        else:
-            # 使用 product_id + warehouse_location 作為唯一識別
-            wid = f"{row.get('product_id', idx)}_{row.get('warehouse_location', idx)}"
-        
-        pid = str(row.get('product_id', ''))
-            
-        yield {
-            "_id": f"warehouse_{wid}",
-            "_index": "erp-warehouse",
-            "doc_id": f"warehouse_{wid}",
-            "title": f"[{row.get('warehouse_location')}] {product_cache.get_name(pid)}",
-            "content": str(row.get('special_notes', '')),
-            "product_ids": [pid] if pid else [],
-            "metadata": {
-                "product_id": pid,
-                "quantity": int(row['quantity']) if pd.notna(row.get('quantity')) else 0,
-                "location": row.get('warehouse_location'),
-                "manager": row.get('manager')
-            },
-            # 統一使用 last_modified 欄位名稱
-            "last_modified": format_date_for_es(row.get('last_modified'))
-        }
-
-def process_complaints(df):
-    """處理客訴資料"""
-    if df.empty:
-        return
-        
-    for _, row in df.iterrows():
-        if pd.isna(row.get('complaint_id')):
-            continue
-            
-        cid = str(row['complaint_id'])
-            
-        yield {
-            "_id": f"complaint_{cid}",
-            "_index": "erp-complaints",
-            "doc_id": f"complaint_{cid}",
-            "title": f"[{cid}] {row.get('customer_company', '')} - {row.get('complaint_type')}",
-            "content": row.get('description', ''),
-            "product_ids": [],
-            "metadata": {
-                "customer": row.get('customer_company'),
-                "type": row.get('complaint_type'),
-                "status": row.get('status'),
-                "severity": row.get('severity')
-            },
-            # 統一使用 last_modified 欄位名稱
-            "last_modified": format_date_for_es(row.get('last_modified'))
-        }
-
-def process_tech_docs(df):
-    """處理技術文件資料"""
-    if df.empty:
-        return
-        
-    for _, row in df.iterrows():
-        # 必須有 doc_id
-        if pd.isna(row.get('doc_id')):
-            continue
-            
-        doc_id = str(row['doc_id'])
-        
-        # 解析JSON欄位
-        product_ids = []
         try:
-            if pd.notna(row.get('product_ids')):
-                pids = json.loads(row['product_ids']) if isinstance(row['product_ids'], str) else row['product_ids']
-                product_ids = pids if isinstance(pids, list) else []
-        except: 
-            pass
-        
-        yield {
-            "_id": f"tech_doc_{doc_id}",
-            "_index": "erp-technical-docs",
-            "doc_id": doc_id,
-            "title": row.get('title') or row.get('doc_number') or row.get('file_name', ''),
-            "content": row.get('content', ''),
-            "product_ids": product_ids,
-            "metadata": {
-                "doc_type": row.get('doc_type'),
-                "doc_number": row.get('doc_number'),
-                "author": row.get('author'),
-                "revision": row.get('revision'),
-                "file_size": int(row['file_size']) if pd.notna(row.get('file_size')) else None,
-                "page_count": int(row['page_count']) if pd.notna(row.get('page_count')) else None
-            },
-            # 統一使用 last_modified 欄位名稱
-            "last_modified": format_date_for_es(row.get('last_modified'))
-        }
+            results = self._run_query_with_retry(sql, (last_modified, limit))
 
-def sync_table(table_name: str, processor, es_client, state: Dict) -> bool:
-    """同步單一資料表"""
-    
-    # 從狀態中取得最後同步時間
-    since = state.get(table_name)
-    if isinstance(since, dict):
-        # 如果是字典，嘗試取得時間戳
-        since = since.get('last_sync')
-    
-    logger.info(f"同步 {table_name}, 起始: {since or '初始同步'}")
-    
-    # 設定索引名稱映射
-    index_map = {
-        "product_master_a": "erp-products",
-        "product_warehouse_b": "erp-warehouse",
-        "customer_complaint_c": "erp-complaints",
-        "technical_documents": "erp-technical-docs"
-    }
-    
-    # 確保索引存在
-    if table_name in index_map:
-        ensure_index(es_client, index_map[table_name])
-    
-    total_success = 0
-    total_failed = 0
-    max_time = since
-    
-    # 分頁處理資料
-    try:
-        for df in fetch_data_in_pages(table_name, since):
-            if df.empty:
-                continue
+            for row in results:
+                # 處理日期
+                for field in ['last_modified', 'created_date']:
+                    if field in row and row[field]:
+                        row[field] = self._format_datetime(row[field])
                 
-            # 先檢查資料結構（除錯用）
-            if table_name == "product_warehouse_b" and "warehouse_id" not in df.columns:
-                logger.warning(f"{table_name} 沒有 warehouse_id 欄位，可用欄位: {list(df.columns)}")
-            
-            # 處理資料
-            docs = list(processor(df))
-            if not docs: 
-                continue
-            
-            # 批量寫入 Elasticsearch
-            for success, info in parallel_bulk(
-                es_client, docs,
-                thread_count=PARALLEL_THREADS,
-                chunk_size=500,
-                raise_on_error=False,
-                raise_on_exception=False
-            ):
-                if success: 
-                    total_success += 1
-                else:
-                    total_failed += 1
-                    if total_failed <= 5:  # 只記錄前5個錯誤避免日誌爆炸
-                        logger.error(f"索引失敗: {info}")
-            
-            # 更新最大時間戳（用於下次同步）
-            if 'last_modified' in df.columns:
-                page_max = df['last_modified'].max()
-                if pd.notna(page_max):
-                    max_time = str(page_max) if not max_time or page_max > pd.Timestamp(max_time or '1970-01-01') else max_time
-                    
-    except Exception as e:
-        logger.error(f"處理 {table_name} 時發生錯誤: {e}", exc_info=True)
-        return False
-    
-    # 更新狀態 - 只有真正有同步資料才更新
-    if total_success > 0:
-        if max_time and max_time != since:
-            state[table_name] = str(max_time)  # 確保儲存為字串
-        logger.info(f"✅ {table_name}: 同步成功 {total_success} 筆, 失敗 {total_failed} 筆" + 
-                   (f", 更新到 {max_time}" if max_time else ""))
-        return True
-    elif total_failed > 0:
-        logger.error(f"❌ {table_name}: 全部失敗 {total_failed} 筆")
-        return False
-    else:
-        logger.info(f"💤 {table_name}: 無新資料")
-        return False
-
-def main():
-    """主程式"""
-    logger.info("=" * 50)
-    logger.info("🚀 MySQL to Elasticsearch 同步服務啟動")
-    logger.info(f"📊 使用統一欄位名稱: last_modified")
-    logger.info(f"📊 日期格式: ISO 8601 with timezone (+00:00)")
-    
-    # 初始化
-    es = get_es_client()
-    state = load_state()
-    product_cache.refresh()
-    
-    # 檢查是否需要重建索引（透過環境變數控制）
-    rebuild_indexes = os.getenv("REBUILD_INDEXES", "false").lower() == "true"
-    if rebuild_indexes:
-        logger.warning("⚠️  索引重建模式啟用")
-        indexes_to_rebuild = [
-            "erp-products", 
-            "erp-warehouse", 
-            "erp-complaints", 
-            "erp-technical-docs"
-        ]
-        for idx in indexes_to_rebuild:
-            if es.indices.exists(index=idx):
-                logger.info(f"刪除索引: {idx}")
-                es.indices.delete(index=idx)
-        # 清空狀態，強制全量同步
-        state = {}
-        save_state(state)
-    
-    # 同步表配置
-    tables = {
-        "product_master_a": process_products,
-        "product_warehouse_b": process_warehouse,
-        "customer_complaint_c": process_complaints,
-        "technical_documents": process_tech_docs
-    }
-    
-    # 第一次執行時檢查資料表結構
-    if not state or rebuild_indexes:
-        logger.info("首次執行或重建模式，檢查資料表結構...")
-        with engine.connect() as conn:
-            for table_name in tables.keys():
-                try:
-                    # 檢查表是否存在並取得欄位資訊
-                    check = f"SHOW TABLES LIKE '{table_name}'"
-                    if not pd.read_sql(check, conn).empty:
-                        # 取得前1筆資料檢查欄位
-                        sample = pd.read_sql(f"SELECT * FROM {table_name} LIMIT 1", conn)
-                        if not sample.empty:
-                            logger.info(f"{table_name} 欄位: {list(sample.columns)[:10]}...")
-                    else:
-                        logger.warning(f"{table_name} 資料表不存在")
-                except Exception as e:
-                    logger.error(f"檢查 {table_name} 失敗: {e}")
-    
-    # 主循環
-    consecutive_no_updates = 0
-    while True:
-        try:
-            has_updates = False
-            
-            # 同步各資料表
-            for table_name, processor in tables.items():
-                try:
-                    # 檢查表是否存在
-                    with engine.connect() as conn:
-                        check = f"SHOW TABLES LIKE '{table_name}'"
-                        if not pd.read_sql(check, conn).empty:
-                            if sync_table(table_name, processor, es, state):
-                                has_updates = True
-                                save_state(state)
-                        else:
-                            logger.debug(f"跳過不存在的表: {table_name}")
-                except Exception as e:
-                    logger.error(f"同步 {table_name} 失敗: {e}")
-            
-            # 動態調整睡眠時間
-            if has_updates:
-                consecutive_no_updates = 0
-                sleep_time = 5  # 有更新時短暫等待
-            else:
-                consecutive_no_updates += 1
-                # 逐漸增加睡眠時間，最多5分鐘
-                sleep_time = min(SLEEP_SECONDS * (1 + consecutive_no_updates // 5), 300)
-            
-            logger.info(f"💤 等待 {sleep_time} 秒...")
-            time.sleep(sleep_time)
-            
-        except KeyboardInterrupt:
-            logger.info("停止服務")
-            break
+            return results
         except Exception as e:
-            logger.error(f"主循環錯誤: {e}")
-            time.sleep(30)
+            logger.error(f"查詢產品主檔失敗: {e}")
+            return []
+    
+    def fetch_product_warehouse(self, last_modified: str, limit: int) -> List[Dict]:
+        """獲取倉庫庫存"""
+        sql = """
+        SELECT * FROM product_warehouse_b
+        WHERE last_modified > %s
+        ORDER BY last_modified, product_id
+        LIMIT %s
+        """
+        
+        try:
+            results = self._run_query_with_retry(sql, (last_modified, limit))
+
+            for row in results:
+                if 'last_modified' in row and row['last_modified']:
+                    row['last_modified'] = self._format_datetime(row['last_modified'])
+            
+            return results
+        except Exception as e:
+            logger.error(f"查詢倉庫庫存失敗: {e}")
+            return []
+    
+    def fetch_customer_complaint(self, last_modified: str, limit: int) -> List[Dict]:
+        """獲取客訴資料"""
+        sql = """
+        SELECT * FROM customer_complaint_c
+        WHERE last_modified > %s
+        ORDER BY last_modified, complaint_id
+        LIMIT %s
+        """
+        
+        try:
+            results = self._run_query_with_retry(sql, (last_modified, limit))
+                
+            for row in results:
+                for field in ['last_modified', 'created_date', 'resolved_date']:
+                    if field in row and row[field]:
+                        row[field] = self._format_datetime(row[field])
+                
+            return results
+        except Exception as e:
+            logger.error(f"查詢客訴資料失敗: {e}")
+            return []
+    
+    def fetch_structured_documents(self, last_modified: str, limit: int) -> List[Dict]:
+        """獲取結構化文件"""
+        # structured_documents 表有 id 欄位
+        sql = """
+        SELECT * FROM structured_documents
+        WHERE last_modified > %s
+        ORDER BY last_modified, id
+        LIMIT %s
+        """
+        
+        try:
+            results = self._run_query_with_retry(sql, (last_modified, limit))
+                
+            for row in results:
+                # 解析 JSON 欄位
+                for json_field in ['product_codes', 'product_names', 'responsible_units', 'keywords']:
+                    if json_field in row and row[json_field]:
+                        try:
+                            if isinstance(row[json_field], str):
+                                row[json_field] = json.loads(row[json_field])
+                        except:
+                            row[json_field] = []
+                    
+                    # 處理日期（避免 tzinfo 問題）
+                for date_field in ['doc_date', 'parsed_at', 'last_modified']:
+                    if date_field in row and row[date_field]:
+                        row[date_field] = self._format_datetime(row[date_field])    
+            return results
+        
+        except Exception as e:
+            logger.error(f"查詢結構化文件失敗: {e}")
+            return []
+    
+    def _format_datetime(self, dt):
+        """格式化日期時間（修正 tzinfo 問題）"""
+        from datetime import time
+        if dt is None:
+            return None
+        
+        # 如果是字串，直接返回
+        if isinstance(dt, str):
+            dt_is_str = dt.strip()
+            try:
+                if "T" in dt_is_str:
+                    dt_is_str = dt_is_str.replace("Z", "+00:00")
+                    dt_is_str = datetime.fromisoformat(dt_is_str)
+                else:
+                    for fmt in ("%Y-%m-%d %H:%M:%S, %Y-%m-%d"):
+                        try:
+                            dt = datetime.strptime(dt_is_str, fmt)
+                            break
+                        except ValueError:
+                            pass
+                        if not isinstance(dt, datetime):
+                            return dt_is_str
+            except Exception:
+                return dt_is_str
+            
+        if isinstance(dt, date) and not isinstance(dt, datetime):
+            dt = datetime.combine(dt, time.min)
+        
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        
+        return dt.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+class StateManager:
+    """同步狀態管理器"""
+    
+    def __init__(self):
+        self.state_file = STATE_FILE
+        self.states = self.load_states()
+    
+    def load_states(self) -> Dict:
+        """載入狀態"""
+        if self.state_file.exists():
+            try:
+                with open(self.state_file, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                logger.warning(f"載入狀態檔案失敗: {e}")
+        
+        # 預設狀態
+        return {
+            'product_master_a': {
+                'last_sync': '2000-01-01 00:00:00',
+                'count': 0
+            },
+            'product_warehouse_b': {
+                'last_sync': '2000-01-01 00:00:00',
+                'count': 0
+            },
+            'customer_complaint_c': {
+                'last_sync': '2000-01-01 00:00:00',
+                'count': 0
+            },
+            'structured_documents': {
+                'last_sync': '2000-01-01 00:00:00',
+                'count': 0
+            }
+        }
+    
+    def save_states(self):
+        """儲存狀態"""
+        try:
+            # 確保目錄存在
+            self.state_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(self.state_file, 'w') as f:
+                json.dump(self.states, f, indent=2, default=str)
+            
+            logger.debug(f"狀態已儲存到 {self.state_file}")
+        except Exception as e:
+            logger.error(f"儲存狀態失敗: {e}")
+    
+    def update_state(self, table: str, last_sync: str, count: int):
+        """更新狀態"""
+        if table not in self.states:
+            self.states[table] = {'last_sync': '2000-01-01 00:00:00', 'count': 0}
+        
+        self.states[table]['last_sync'] = last_sync
+        self.states[table]['count'] += count
+        self.save_states()
+
+class DataSynchronizer:
+    """主同步類別"""
+    
+    def __init__(self):
+        self.db = DatabaseManager()
+        self.es = ElasticsearchManager()
+        self.state_manager = StateManager()
+        self.running = False
+        
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGTERM, self.signal_handler)
+    
+    def signal_handler(self, signum, frame):
+        logger.info(f"收到終止訊號 {signum}")
+        self.running = False
+    
+    def sync_table(self, table_name: str, fetch_method, index_name: str) -> int:
+        """同步單一表格"""
+        try:
+            state = self.state_manager.states.get(table_name, {})
+            last_sync = state.get('last_sync', '2000-01-01 00:00:00')
+            
+            logger.info(f"開始同步 {table_name}")
+            logger.debug(f"上次同步時間: {last_sync}")
+            
+            total_synced = 0
+            batch_count = 0
+            
+            while True:
+                # 獲取更新資料
+                updates = fetch_method(last_sync, PAGE_SIZE)
+                
+                if not updates:
+                    break
+                
+                logger.debug(f"獲取 {len(updates)} 筆資料")
+                
+                # 批次索引
+                for i in range(0, len(updates), BATCH_SIZE):
+                    batch = updates[i:i + BATCH_SIZE]
+                    synced = self.es.bulk_index(index_name, batch)
+                    total_synced += synced
+                    batch_count += 1
+                    
+                    # 更新最後同步時間
+                    if batch:
+                        last_record = batch[-1]
+                        if 'last_modified' in last_record:
+                            last_sync = last_record['last_modified']
+                
+                # 如果資料少於頁面大小，沒有更多資料
+                if len(updates) < PAGE_SIZE:
+                    break
+                
+                time.sleep(0.5)
+            
+            # 更新狀態
+            if total_synced > 0:
+                self.state_manager.update_state(table_name, last_sync, total_synced)
+                logger.info(f"同步 {table_name} 完成: {total_synced} 筆")
+            else:
+                logger.debug(f"{table_name} 沒有新資料")
+            
+            return total_synced
+            
+        except Exception as e:
+            logger.error(f"同步 {table_name} 失敗: {e}", exc_info=True)
+            return 0
+    
+    def sync_all(self):
+        """同步所有表格"""
+        sync_configs = [
+            ('product_master_a', self.db.fetch_product_master, 'erp_product_master'),
+            ('product_warehouse_b', self.db.fetch_product_warehouse, 'erp_product_warehouse'),
+            ('customer_complaint_c', self.db.fetch_customer_complaint, 'erp_customer_complaint'),
+            ('structured_documents', self.db.fetch_structured_documents, 'erp_structured_documents')
+        ]
+        
+        total = 0
+        
+        # 使用執行緒池並行同步
+        with ThreadPoolExecutor(max_workers=PARALLEL_THREADS) as executor:
+            futures = []
+            for table, method, index in sync_configs:
+                future = executor.submit(self.sync_table, table, method, index)
+                futures.append((future, table))
+            
+            for future, table in futures:
+                try:
+                    result = future.result(timeout=300)
+                    total += result
+                except Exception as e:
+                    logger.error(f"同步 {table} 執行緒異常: {e}")
+        
+        return total
+    
+    def run(self):
+        """主執行迴圈"""
+        self.running = True
+        logger.info("MySQL to Elasticsearch 同步服務啟動")
+        logger.info(f"設定: BATCH_SIZE={BATCH_SIZE}, PAGE_SIZE={PAGE_SIZE}, THREADS={PARALLEL_THREADS}")
+        
+        # 第一次執行立即同步
+        first_run = True
+        
+        while self.running:
+            try:
+                start = time.time()
+                total = self.sync_all()
+                elapsed = time.time() - start
+                
+                if total > 0:
+                    logger.info(f"本次同步完成: {total} 筆，耗時 {elapsed:.2f} 秒")
+                elif first_run:
+                    logger.info("初次檢查完成，沒有需要同步的資料")
+                
+                first_run = False
+                
+                # 顯示統計
+                logger.info("=" * 50)
+                logger.info("同步統計:")
+                for table, state in self.state_manager.states.items():
+                    logger.info(f"  {table}: 總計 {state['count']} 筆, 最後同步: {state['last_sync']}")
+                logger.info("=" * 50)
+                
+                # 等待下一週期
+                logger.debug(f"等待 {SLEEP_SECONDS} 秒後進行下一次同步")
+                for _ in range(SLEEP_SECONDS):
+                    if not self.running:
+                        break
+                    time.sleep(1)
+                    
+            except Exception as e:
+                logger.error(f"同步服務錯誤: {e}", exc_info=True)
+                time.sleep(10)
+        
+        logger.info("同步服務停止")
 
 if __name__ == "__main__":
-    main()
+    try:
+        synchronizer = DataSynchronizer()
+        synchronizer.run()
+    except KeyboardInterrupt:
+        logger.info("收到中斷訊號")
+    except Exception as e:
+        logger.error(f"服務異常: {e}")
+        sys.exit(1)
