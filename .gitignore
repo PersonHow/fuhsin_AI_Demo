@@ -1,2 +1,5 @@
 .env
 *.env
+_state
+.log
+.log.*
