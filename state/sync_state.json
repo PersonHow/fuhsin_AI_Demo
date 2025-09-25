@@ -1,18 +1,18 @@
 {
   "product_master_a": {
-    "last_sync": "2025-09-15T16:09:22Z",
-    "count": 35
+    "last_sync": "2000-01-01 00:00:00",
+    "count": 0
   },
   "product_warehouse_b": {
-    "last_sync": "2025-09-15T16:09:22Z",
-    "count": 36
+    "last_sync": "2000-01-01 00:00:00",
+    "count": 0
   },
   "customer_complaint_c": {
-    "last_sync": "2025-09-15T16:09:22Z",
-    "count": 30
+    "last_sync": "2000-01-01 00:00:00",
+    "count": 0
   },
   "structured_documents": {
-    "last_sync": "2025-09-23T02:53:00Z",
+    "last_sync": "2025-09-24T16:08:05+00:00",
     "count": 20
   }
 }

@@ -374,7 +374,7 @@ services:
     volumes:
       - ./scripts/db-sync-2:/app:ro        # 放你的 db-sync-2.py
       - ./state:/state                 # 狀態檔持久化（.sync_state.json）
-      - ./logs/db-sync-2:/logs:rw
+      - ./logs:/logs:rw
     working_dir: /app
     # command: >
     #   bash -lc "pip install --no-cache-dir -r scripts/db/requirements.txt &&

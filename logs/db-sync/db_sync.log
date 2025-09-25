@@ -1,0 +1,65 @@
+2025-09-24 16:19:56,110 - INFO - ==================================================
+2025-09-24 16:19:56,110 - INFO - 🚀 MySQL to Elasticsearch 同步服務啟動
+2025-09-24 16:19:56,110 - INFO - 📊 使用統一欄位名稱: last_modified
+2025-09-24 16:19:56,110 - INFO - 📊 日期格式: ISO 8601 with timezone (+00:00)
+2025-09-24 16:19:56,154 - INFO - 載入 35 個產品到快取
+2025-09-24 16:19:56,155 - INFO - 首次執行或重建模式，檢查資料表結構...
+2025-09-24 16:19:56,165 - INFO - product_master_a 欄位: ['product_id', 'product_name', 'product_model', 'category', 'price', 'stock_qty', 'manufacture_date', 'supplier', 'status', 'last_modified']...
+2025-09-24 16:19:56,168 - INFO - product_warehouse_b 欄位: ['product_id', 'product_name', 'warehouse_location', 'quantity', 'last_inventory_date', 'manager', 'special_notes', 'min_stock_level', 'last_modified']...
+2025-09-24 16:19:56,171 - INFO - customer_complaint_c 欄位: ['complaint_id', 'complaint_date', 'customer_name', 'customer_company', 'complaint_type', 'severity', 'description', 'handler', 'status', 'resolution_date']...
+2025-09-24 16:19:56,176 - INFO - technical_documents 欄位: ['id', 'doc_id', 'doc_type', 'doc_number', 'title', 'product_ids', 'revision', 'issue_date', 'author', 'content']...
+2025-09-24 16:19:56,178 - INFO - 同步 product_master_a, 起始: 初始同步
+2025-09-24 16:19:56,187 - INFO - HEAD http://elasticsearch:9200/erp-products [status:404 duration:0.009s]
+2025-09-24 16:19:56,390 - INFO - PUT http://elasticsearch:9200/erp-products [status:200 duration:0.202s]
+2025-09-24 16:19:56,390 - INFO - ✅ 創建索引: erp-products (使用 last_modified 欄位)
+2025-09-24 16:19:56,394 - INFO - product_master_a: 取得 35 筆資料 (offset=0)
+2025-09-24 16:19:56,484 - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.063s]
+2025-09-24 16:19:56,491 - INFO - ✅ product_master_a: 同步成功 35 筆, 失敗 0 筆, 更新到 2025-09-15 16:09:22
+2025-09-24 16:19:56,494 - INFO - 同步 product_warehouse_b, 起始: 初始同步
+2025-09-24 16:19:56,495 - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:404 duration:0.001s]
+2025-09-24 16:19:56,631 - INFO - PUT http://elasticsearch:9200/erp-warehouse [status:200 duration:0.136s]
+2025-09-24 16:19:56,631 - INFO - ✅ 創建索引: erp-warehouse (使用 last_modified 欄位)
+2025-09-24 16:19:56,634 - INFO - product_warehouse_b: 取得 36 筆資料 (offset=0)
+2025-09-24 16:19:56,634 - WARNING - product_warehouse_b 沒有 warehouse_id 欄位，可用欄位: ['product_id', 'product_name', 'warehouse_location', 'quantity', 'last_inventory_date', 'manager', 'special_notes', 'min_stock_level', 'last_modified']
+2025-09-24 16:19:56,683 - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.045s]
+2025-09-24 16:19:56,686 - INFO - ✅ product_warehouse_b: 同步成功 36 筆, 失敗 0 筆, 更新到 2025-09-15 16:09:22
+2025-09-24 16:19:56,688 - INFO - 同步 customer_complaint_c, 起始: 初始同步
+2025-09-24 16:19:56,689 - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:404 duration:0.001s]
+2025-09-24 16:19:56,816 - INFO - PUT http://elasticsearch:9200/erp-complaints [status:200 duration:0.126s]
+2025-09-24 16:19:56,817 - INFO - ✅ 創建索引: erp-complaints (使用 last_modified 欄位)
+2025-09-24 16:19:56,819 - INFO - customer_complaint_c: 取得 30 筆資料 (offset=0)
+2025-09-24 16:19:56,864 - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.043s]
+2025-09-24 16:19:56,867 - INFO - ✅ customer_complaint_c: 同步成功 30 筆, 失敗 0 筆, 更新到 2025-09-15 16:09:22
+2025-09-24 16:19:56,869 - INFO - 同步 technical_documents, 起始: 初始同步
+2025-09-24 16:19:56,870 - INFO - HEAD http://elasticsearch:9200/erp-technical-docs [status:404 duration:0.001s]
+2025-09-24 16:19:57,005 - INFO - PUT http://elasticsearch:9200/erp-technical-docs [status:200 duration:0.134s]
+2025-09-24 16:19:57,005 - INFO - ✅ 創建索引: erp-technical-docs (使用 last_modified 欄位)
+2025-09-24 16:19:57,009 - INFO - technical_documents: 取得 20 筆資料 (offset=0)
+2025-09-24 16:19:57,092 - INFO - PUT http://elasticsearch:9200/_bulk [status:200 duration:0.080s]
+2025-09-24 16:19:57,099 - INFO - ✅ technical_documents: 同步成功 20 筆, 失敗 0 筆, 更新到 2025-09-19 15:19:58
+2025-09-24 16:19:57,102 - INFO - 💤 等待 5 秒...
+2025-09-24 16:20:02,108 - INFO - 同步 product_master_a, 起始: 2025-09-15 16:09:22
+2025-09-24 16:20:02,114 - INFO - HEAD http://elasticsearch:9200/erp-products [status:200 duration:0.004s]
+2025-09-24 16:20:02,119 - INFO - GET http://elasticsearch:9200/erp-products/_mapping [status:200 duration:0.004s]
+2025-09-24 16:20:02,120 - INFO - 索引 erp-products 已存在
+2025-09-24 16:20:02,120 - INFO - 當前 last_modified 格式: strict_date_optional_time||yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSS'Z'||yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd'T'HH:mm:ssZZ||yyyy-MM-dd||epoch_millis
+2025-09-24 16:20:02,124 - INFO - 💤 product_master_a: 無新資料
+2025-09-24 16:20:02,129 - INFO - 同步 product_warehouse_b, 起始: 2025-09-15 16:09:22
+2025-09-24 16:20:02,131 - INFO - HEAD http://elasticsearch:9200/erp-warehouse [status:200 duration:0.002s]
+2025-09-24 16:20:02,133 - INFO - GET http://elasticsearch:9200/erp-warehouse/_mapping [status:200 duration:0.002s]
+2025-09-24 16:20:02,133 - INFO - 索引 erp-warehouse 已存在
+2025-09-24 16:20:02,133 - INFO - 當前 last_modified 格式: strict_date_optional_time||yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSS'Z'||yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd'T'HH:mm:ssZZ||yyyy-MM-dd||epoch_millis
+2025-09-24 16:20:02,136 - INFO - 💤 product_warehouse_b: 無新資料
+2025-09-24 16:20:02,138 - INFO - 同步 customer_complaint_c, 起始: 2025-09-15 16:09:22
+2025-09-24 16:20:02,139 - INFO - HEAD http://elasticsearch:9200/erp-complaints [status:200 duration:0.001s]
+2025-09-24 16:20:02,140 - INFO - GET http://elasticsearch:9200/erp-complaints/_mapping [status:200 duration:0.001s]
+2025-09-24 16:20:02,141 - INFO - 索引 erp-complaints 已存在
+2025-09-24 16:20:02,141 - INFO - 當前 last_modified 格式: strict_date_optional_time||yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSS'Z'||yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd'T'HH:mm:ssZZ||yyyy-MM-dd||epoch_millis
+2025-09-24 16:20:02,143 - INFO - 💤 customer_complaint_c: 無新資料
+2025-09-24 16:20:02,146 - INFO - 同步 technical_documents, 起始: 2025-09-19 15:19:58
+2025-09-24 16:20:02,147 - INFO - HEAD http://elasticsearch:9200/erp-technical-docs [status:200 duration:0.001s]
+2025-09-24 16:20:02,148 - INFO - GET http://elasticsearch:9200/erp-technical-docs/_mapping [status:200 duration:0.001s]
+2025-09-24 16:20:02,148 - INFO - 索引 erp-technical-docs 已存在
+2025-09-24 16:20:02,149 - INFO - 當前 last_modified 格式: strict_date_optional_time||yyyy-MM-dd HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss||yyyy-MM-dd'T'HH:mm:ss.SSS'Z'||yyyy-MM-dd'T'HH:mm:ssZ||yyyy-MM-dd'T'HH:mm:ssZZ||yyyy-MM-dd||epoch_millis
+2025-09-24 16:20:02,151 - INFO - 💤 technical_documents: 無新資料
+2025-09-24 16:20:02,151 - INFO - 💤 等待 30 秒...

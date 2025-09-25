@@ -31,53 +31,78 @@ export default function App() {
   const [searchHistory, setSearchHistory] = useState([])           // 搜尋歷史紀錄
   const [useGPT, setUseGPT] = useState(true)                       // 是否使用 GPT 生成答案
   const [topK, setTopK] = useState(5)                              // 回傳結果數量
+  const [searchStats, setSearchStats] = useState(null)             // 搜尋統計資訊
+  const [lastSearchTime, setLastSearchTime] = useState(null)       // 最後搜尋時間
 
   // ─────────────────────── 系統健康檢查 ───────────────────────
   /**
    * 將 /health API 回傳結果正規化，確保舊版或新版後端格式都能處理。
-   * - 舊版後端：{ elasticsearch: boolean, openai: boolean, status: 'ok'|'error' }
-   * - 新版後端：{ status: 'ok', time: <number> }
    */
   const normalizeHealth = (data) => {
     const hasES = typeof data?.elasticsearch === 'boolean'
     const hasOpenAI = typeof data?.openai === 'boolean'
     const status = data?.status || 'ok'
+    
     return {
-      elasticsearch: hasES ? data.elasticsearch : status === 'ok',
-      openai: hasOpenAI ? data.openai : true, // 如果沒有明確提供，預設為 true
-      status
+      elasticsearch: hasES ? data.elasticsearch : status === 'healthy',
+      openai: hasOpenAI ? data.openai : status === 'healthy',
+      status: status === 'healthy' ? 'ok' : (status === 'degraded' ? 'warning' : 'error')
     }
   }
 
   // 呼叫後端 /health 取得系統狀態
   const checkSystemHealth = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`)
+      const response = await fetch(`${API_BASE_URL}/health`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
       if (response.ok) {
         const data = await response.json()
         setSystemStatus(normalizeHealth(data))
+        console.log('系統健康狀態:', data)
       } else {
+        console.warn('健康檢查失敗:', response.status, response.statusText)
         setSystemStatus({ elasticsearch: false, openai: false, status: 'error' })
       }
     } catch (err) {
-      console.error('Health check failed:', err)
+      console.error('健康檢查錯誤:', err)
       setSystemStatus({ elasticsearch: false, openai: false, status: 'error' })
+    }
+  }, [])
+
+  // 取得系統統計資訊
+  const getSystemStats = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/stats`)
+      if (response.ok) {
+        const stats = await response.json()
+        setSearchStats(stats)
+        console.log('系統統計資訊:', stats)
+      }
+    } catch (err) {
+      console.error('獲取統計資訊失敗:', err)
     }
   }, [])
 
   // 初始化時執行一次健康檢查，之後每 30 秒重複檢查一次
   useEffect(() => {
     checkSystemHealth()
-    const interval = setInterval(checkSystemHealth, 30000)
-    return () => clearInterval(interval)
-  }, [checkSystemHealth])
+    getSystemStats()
+    
+    const healthInterval = setInterval(checkSystemHealth, 30000)
+    const statsInterval = setInterval(getSystemStats, 60000)
+    
+    return () => {
+      clearInterval(healthInterval)
+      clearInterval(statsInterval)
+    }
+  }, [checkSystemHealth, getSystemStats])
 
   // ──────────────────────── 搜尋處理 ─────────────────────────
   /**
-   * 執行搜尋請求
-   * - 使用新版後端 API：POST /query
-   * - Body 格式：{ query, mode, top_k, use_gpt, index_pattern }
-   * - mode 參數修正為後端期待的名稱
+   * 執行搜尋請求 - 改進版本，包含更詳細的錯誤處理和日誌
    */
   const handleSearch = async (query = searchQuery) => {
     if (!query.trim()) {
@@ -85,11 +110,15 @@ export default function App() {
       return
     }
     
-    console.log('搜尋模式:', searchMode);
-    console.log('搜尋數量:', topK);
+    console.log('=== 開始搜尋 ===')
+    console.log('搜尋查詢:', query)
+    console.log('搜尋模式:', searchMode)
+    console.log('結果數量:', topK)
+    console.log('使用 GPT:', useGPT)
 
     setIsLoading(true)
     setError(null)
+    setSearchResults(null)
 
     // 更新搜尋歷史（最多保留 10 筆，並避免重複）
     setSearchHistory(prev => {
@@ -98,10 +127,15 @@ export default function App() {
       return newHistory
     })
 
+    // 記錄搜尋開始時間
+    const searchStartTime = Date.now()
+    setLastSearchTime(new Date().toLocaleString())
+
     try {
+      // 構建請求 payload - 確保欄位名稱與後端 API 一致
       const payload = {
-        query: query,
-        mode: searchMode,  // 修正：使用 'mode' 而不是 'search_mode'
+        query: query.trim(),
+        mode: searchMode,  // 使用 'mode' 參數
         top_k: Number(topK),
         use_gpt: Boolean(useGPT),
         index_pattern: 'erp-*',
@@ -109,33 +143,106 @@ export default function App() {
         convert_to_traditional: true
       }
 
-      console.log('發送請求 payload:', payload);
+      console.log('發送請求 payload:', JSON.stringify(payload, null, 2))
 
       const response = await fetch(`${API_BASE_URL}/query`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(payload)
       })
 
+      // 詳細的響應處理
+      console.log('響應狀態:', response.status, response.statusText)
+      console.log('響應頭:', Object.fromEntries(response.headers.entries()))
+
       if (!response.ok) {
-        // 把錯誤細節印出來
-        let msg = `搜尋失敗: ${response.status}`
+        let errorMsg = `搜尋失敗 (${response.status}): ${response.statusText}`
+        
         try {
-          const err = await response.json()
-          if (err?.detail) msg += `\n${JSON.stringify(err.detail, null, 2)}`
-        } catch (_) { }
-        throw new Error(msg)
+          const errorData = await response.json()
+          console.error('錯誤詳情:', errorData)
+          
+          if (errorData?.detail) {
+            if (typeof errorData.detail === 'string') {
+              errorMsg = errorData.detail
+            } else {
+              errorMsg += `\n${JSON.stringify(errorData.detail, null, 2)}`
+            }
+          }
+        } catch (parseError) {
+          console.error('解析錯誤響應失敗:', parseError)
+          // 嘗試獲取原始文本
+          try {
+            const errorText = await response.text()
+            console.error('錯誤響應原始內容:', errorText)
+            if (errorText) {
+              errorMsg += `\n${errorText}`
+            }
+          } catch (textError) {
+            console.error('獲取錯誤文本失敗:', textError)
+          }
+        }
+        
+        throw new Error(errorMsg)
       }
 
       const data = await response.json()
-      console.log('搜尋結果:', data);
-      console.log('結果數量:', data.sources?.length);
-      console.log('總命中數:', data.total_hits);
+      
+      // 詳細的響應日誌
+      console.log('=== 搜尋成功 ===')
+      console.log('完整響應數據:', JSON.stringify(data, null, 2))
+      console.log('處理後的查詢:', data.processed_query)
+      console.log('搜尋模式:', data.search_mode)
+      console.log('結果數量:', data.sources?.length)
+      console.log('總命中數:', data.total_hits)
+      console.log('處理時間:', data.processing_time_ms, 'ms')
+      
+      if (data.answer) {
+        console.log('GPT 答案長度:', data.answer.length, '字符')
+      }
+      
+      if (data.sources) {
+        data.sources.forEach((source, index) => {
+          console.log(`結果 ${index + 1}:`, {
+            score: source.score,
+            index: source.index,
+            type: source.metadata?.type,
+            content_length: source.content?.length
+          })
+        })
+      }
+
+      // 計算客戶端總時間
+      const totalTime = Date.now() - searchStartTime
+      console.log('客戶端總時間:', totalTime, 'ms')
+
       setSearchResults(data)
 
     } catch (err) {
-      console.error('Search error:', err)
-      setError(err?.message || '搜尋時發生錯誤')
+      console.error('=== 搜尋錯誤 ===')
+      console.error('錯誤類型:', err.constructor.name)
+      console.error('錯誤訊息:', err.message)
+      console.error('錯誤堆疊:', err.stack)
+      
+      // 更友善的錯誤訊息
+      let userFriendlyError = '搜尋時發生錯誤'
+      
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        userFriendlyError = '無法連接到搜尋服務，請檢查網路連接'
+      } else if (err.message.includes('timeout')) {
+        userFriendlyError = '搜尋請求超時，請稍後再試'
+      } else if (err.message.includes('503')) {
+        userFriendlyError = '搜尋服務暫時不可用，請稍後再試'
+      } else if (err.message.includes('500')) {
+        userFriendlyError = '服務器內部錯誤，請稍後再試'
+      } else if (err.message) {
+        userFriendlyError = err.message
+      }
+      
+      setError(userFriendlyError)
       setSearchResults(null)
     } finally {
       setIsLoading(false)
@@ -149,7 +256,7 @@ export default function App() {
       try {
         setSearchHistory(JSON.parse(saved))
       } catch (e) {
-        console.error('Failed to load search history:', e)
+        console.error('載入搜尋歷史失敗:', e)
       }
     }
   }, [])
@@ -161,6 +268,19 @@ export default function App() {
     setError(null)
   }
 
+  // 重置錯誤狀態
+  const handleErrorReset = () => {
+    setError(null)
+  }
+
+  // 快速搜尋建議
+  const quickSearchSuggestions = [
+    'P026', 'P001', 'P002',  // 產品代碼範例
+    '交流伺服馬達', '動力設備', '安川電機',  // 產品相關
+    '客訴', '退貨', '品質問題',  // 客訴相關
+    '技術文件', '申請', '核准'   // 文件相關
+  ]
+
   // ────────────────────────── Render ──────────────────────────
   return (
     <div className="app-container">
@@ -168,7 +288,11 @@ export default function App() {
       <Header title="Fushin AI 智能檢索系統" />
 
       {/* 系統健康狀態指示器 */}
-      <StatusIndicator status={systemStatus} />
+      <StatusIndicator 
+        status={systemStatus} 
+        stats={searchStats}
+        lastUpdate={lastSearchTime}
+      />
 
       <main className="main-content">
         <div className="search-section">
@@ -186,6 +310,28 @@ export default function App() {
               handleSearch(q)
             }}
           />
+
+          {/* 快速搜尋建議 */}
+          {!searchQuery && !searchResults && (
+            <div className="quick-search-suggestions">
+              <label>快速搜尋建議：</label>
+              <div className="suggestion-buttons">
+                {quickSearchSuggestions.map(suggestion => (
+                  <button
+                    key={suggestion}
+                    onClick={() => {
+                      setSearchQuery(suggestion)
+                      handleSearch(suggestion)
+                    }}
+                    className="suggestion-button"
+                    disabled={isLoading}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 搜尋選項 */}
           <div className="search-options">
@@ -218,6 +364,7 @@ export default function App() {
                   <option value={3}>3</option>
                   <option value={5}>5</option>
                   <option value={10}>10</option>
+                  <option value={15}>15</option>
                   <option value={20}>20</option>
                 </select>
               </div>
@@ -228,12 +375,49 @@ export default function App() {
         {/* 錯誤訊息 */}
         {error && (
           <div className="error-message">
-            <span>⚠️ {error}</span>
+            <div className="error-content">
+              <div className="error-main">
+                <span className="error-icon">⚠️</span>
+                <span className="error-text">{error}</span>
+              </div>
+              <button 
+                className="error-close-btn"
+                onClick={handleErrorReset}
+                title="關閉錯誤訊息"
+              >
+                ✕
+              </button>
+            </div>
+            {/* 錯誤時的調試資訊 */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="debug-info">
+                <details>
+                  <summary>調試資訊</summary>
+                  <pre>
+                    <code>
+                      {JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        searchQuery,
+                        searchMode,
+                        topK,
+                        useGPT,
+                        systemStatus,
+                        apiUrl: API_BASE_URL
+                      }, null, 2)}
+                    </code>
+                  </pre>
+                </details>
+              </div>
+            )}
           </div>
         )}
 
         {/* 載入中提示 */}
-        {isLoading && <LoadingSpinner message="搜尋中..." />}
+        {isLoading && (
+          <LoadingSpinner 
+            message={`正在執行${searchMode === 'hybrid' ? '混合' : searchMode === 'vector' ? '語義' : '關鍵字'}搜尋...`} 
+          />
+        )}
 
         {/* 搜尋結果列表 */}
         {searchResults && !isLoading && (
@@ -246,13 +430,72 @@ export default function App() {
         
         {/* 結果統計資訊 */}
         {searchResults && !isLoading && (
-          <div className="search-stats" style={{ marginTop: '1rem', padding: '0.5rem', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-            <small>
-              搜尋模式: {searchResults.search_mode} | 
-              返回結果: {searchResults.sources?.length || 0} 筆 | 
-              總命中數: {searchResults.total_hits || 0} 筆 | 
-              處理時間: {searchResults.processing_time_ms || 0} ms
-            </small>
+          <div className="search-stats">
+            <div className="stats-row">
+              <div className="stats-item">
+                <strong>搜尋模式:</strong> {searchResults.search_mode}
+              </div>
+              <div className="stats-item">
+                <strong>返回結果:</strong> {searchResults.sources?.length || 0} 筆
+              </div>
+              <div className="stats-item">
+                <strong>總命中數:</strong> {searchResults.total_hits || 0} 筆
+              </div>
+              <div className="stats-item">
+                <strong>處理時間:</strong> {searchResults.processing_time_ms || 0} ms
+              </div>
+            </div>
+            
+            {/* 查詢處理資訊 */}
+            {searchResults.processed_query !== searchResults.query && (
+              <div className="query-processing-info">
+                <small>
+                  <strong>原始查詢:</strong> {searchResults.query} → 
+                  <strong>處理後:</strong> {searchResults.processed_query}
+                </small>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 無結果提示 */}
+        {searchResults && !isLoading && searchResults.sources?.length === 0 && (
+          <div className="no-results">
+            <div className="no-results-content">
+              <h3>🔍 未找到相關結果</h3>
+              <p>嘗試以下建議：</p>
+              <ul>
+                <li>檢查搜尋關鍵字是否正確</li>
+                <li>嘗試更簡短或更具體的關鍵字</li>
+                <li>使用不同的搜尋模式（關鍵字/語義/混合）</li>
+                <li>檢查是否有相關的產品代碼或文件編號</li>
+                <li>嘗試使用上方的快速搜尋建議</li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* 系統狀態面板（開發模式） */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="debug-panel">
+            <details>
+              <summary>系統調試資訊</summary>
+              <div className="debug-content">
+                <h4>系統狀態</h4>
+                <pre>{JSON.stringify(systemStatus, null, 2)}</pre>
+                
+                <h4>統計資訊</h4>
+                <pre>{JSON.stringify(searchStats, null, 2)}</pre>
+                
+                <h4>搜尋配置</h4>
+                <pre>{JSON.stringify({
+                  searchMode,
+                  topK,
+                  useGPT,
+                  apiUrl: API_BASE_URL
+                }, null, 2)}</pre>
+              </div>
+            </details>
           </div>
         )}
       </main>

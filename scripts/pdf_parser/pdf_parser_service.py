@@ -1,22 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-文件結構化解析服務 - 改進版
+文件結構化解析服務 - 修正版
 增強解析準確度，正確提取文件編號、部門、產品等資訊
 """
 
-import os
-import sys
-import json
-import re
-import time
-import logging
-import hashlib
-import pymysql
+import os, sys, json, re, time
+import logging, hashlib, pymysql, signal
 from datetime import datetime
 from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
-import signal
 
 # 環境變數配置
 MYSQL_HOST = os.getenv("MYSQL_HOST", "mysql")
@@ -26,7 +19,7 @@ MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "root")
 MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "fuhsin_erp_demo")
 
 FILE_SERVICE_BASE_URL = os.getenv("FILE_SERVICE_BASE_URL", "http://localhost:8088")
-PDF_STORAGE_PATH = os.getenv("PDF_STORAGE_PATH", "/mnt/pdf/files")
+PDF_STORAGE_PATH = os.getenv("PDF_STORAGE_PATH", "/mnt/pdf/files")  # 修正：確保路徑正確
 
 SCAN_INTERVAL = int(os.getenv("SCAN_INTERVAL", "60"))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "10"))
@@ -64,6 +57,185 @@ class ImprovedContentParser:
         '資訊': 'IT部'
     }
     
+    @classmethod
+    def clean_ocr_noise(cls, text: str) -> str:
+        """清理 OCR 雜訊和亂碼"""
+        # 移除常見的 OCR 亂碼模式
+        noise_patterns = [
+            r'[A-Z]{2,}\s+[A-Z]{2,}\s+[A-Z]{2,}\s+[A-Z]{2,}',  # 連續大寫字母組合
+            r'about:blank',  # 瀏覽器產生的文字
+            r'\d{4}/\d{1,2}/\d{1,2}\s+[上下]午\d{1,2}:\d{2}',  # 時間戳記
+            r'\[OCR\s+第\s*\d+\s*頁\]',  # OCR 頁碼標記
+            r'@+',  # 多個 @ 符號
+            r'\|+',  # 多個管道符號（表格殘留）
+            r'[\x00-\x1F\x7F-\x9F]',  # 控制字符
+            r'[^\u4e00-\u9fff\u3000-\u303f\w\s\-\.\,\:\;\!\?\(\)\[\]\/\+\=\*\&\%\$\#\@]',  # 非中文、英文、數字、標點
+        ]
+        
+        cleaned = text
+        for pattern in noise_patterns:
+            cleaned = re.sub(pattern, ' ', cleaned)
+        
+        # 清理多餘空白
+        cleaned = re.sub(r'\s+', ' ', cleaned)
+        cleaned = re.sub(r'\n\s*\n', '\n', cleaned)
+        
+        return cleaned.strip()
+
+    @classmethod
+    def extract_key_info(cls, content: str, doc_type: str) -> Dict[str, any]:
+        """提取關鍵資訊（改進版 - 加強 related_doc_numbers）"""
+        key_info = {}
+        cleaned_content = cls.clean_ocr_noise(content)
+        
+        # 收集所有相關文件編號（包含品號、單號等）
+        related_numbers = []
+        
+        # 文件編號提取（優化版）
+        doc_patterns = {
+            'CPR': r'CPR[-\s]?K[-\s]?Q[-\s]?\d{2}[-\s]?[A-Z][-\s]?B?\d{3}',
+            'ECN': r'EC[-\s]?K[-\s]?\d{2}[-\s]?[A-Z][-\s]?\d{3}(?:[-\s]?\d)?',
+            'LD': r'L[DO]?\d{6,7}[A-Z]?\d?',
+            'FORM': r'[A-Z]{2,4}[-\s]?\d{2,4}[-\s]?[A-Z]?\d*',
+            'GENERAL_DOC': r'[A-Z]{2,3}[-\s]?\d{2,6}[-\s]?[A-Z]?'
+        }
+        
+        # 提取所有匹配的文件編號
+        for doc_key, pattern in doc_patterns.items():
+            matches = re.findall(pattern, cleaned_content, re.IGNORECASE)
+            for match in matches:
+                clean_number = re.sub(r'\s+', '-', match.strip())
+                if not key_info.get('doc_number'):
+                    key_info['doc_number'] = clean_number  # 第一個作為主要編號
+                related_numbers.append(clean_number)
+        
+        # 設變申請單號（針對ECN文件）
+        ecn_patterns = [
+            r'設變申請單號\s*[:：]\s*(EC[-\s]?K[-\s]?\d{2}[-\s]?[A-Z][-\s]?\d{3})',
+            r'ECN\s*[:：]?\s*(EC[-\s]?K[-\s]?\d{2}[-\s]?[A-Z][-\s]?\d{3})',
+            r'變更單號\s*[:：]\s*(EC[-\s]?K[-\s]?\d{2}[-\s]?[A-Z][-\s]?\d{3})'
+        ]
+        
+        for pattern in ecn_patterns:
+            ecn_matches = re.findall(pattern, cleaned_content)
+            for ecn_match in ecn_matches:
+                ecn_number = re.sub(r'\s+', '-', ecn_match.strip())
+                if not key_info.get('ecn_number'):
+                    key_info['ecn_number'] = ecn_number
+                related_numbers.append(ecn_number)
+        
+        # 品號提取（改進版 - 更全面）
+        product_patterns = [
+            r'品號\s*[:：]\s*([A-Z0-9\-、]+)',
+            r'料號\s*[:：]\s*([A-Z0-9\-、]+)',
+            r'產品編號\s*[:：]\s*([A-Z0-9\-、]+)',
+            r'[GLF]\d{2}[-\s]?[A-Z0-9]+[-\s]?[A-Z0-9]*',  # 標準產品編號格式
+            r'[A-Z]\d{2,3}[-\s]?[A-Z0-9]{3,}',            # 其他產品編號格式
+            r'OB\d+-[A-Z0-9\-]+',                         # OB 系列
+        ]
+        
+        products = []
+        for pattern in product_patterns:
+            matches = re.findall(pattern, cleaned_content)
+            for match in matches:
+                # 清理並分割多個品號
+                if '、' in match:
+                    items = [p.strip() for p in match.split('、') if p.strip()]
+                    products.extend(items)
+                    related_numbers.extend(items)
+                elif '，' in match:
+                    items = [p.strip() for p in match.split('，') if p.strip()]
+                    products.extend(items)
+                    related_numbers.extend(items)
+                else:
+                    clean_product = match.strip()
+                    if clean_product:
+                        products.append(clean_product)
+                        related_numbers.append(clean_product)
+        
+        # 其他可能的相關編號（工單、採購單等）
+        other_patterns = [
+            r'工單號\s*[:：]\s*([A-Z0-9\-]+)',
+            r'採購單號\s*[:：]\s*([A-Z0-9\-]+)',
+            r'客戶訂單號\s*[:：]\s*([A-Z0-9\-]+)',
+            r'規格書編號\s*[:：]\s*([A-Z0-9\-]+)',
+            r'圖號\s*[:：]\s*([A-Z0-9\-]+)',
+        ]
+        
+        for pattern in other_patterns:
+            matches = re.findall(pattern, cleaned_content)
+            for match in matches:
+                clean_number = match.strip()
+                if clean_number:
+                    related_numbers.append(clean_number)
+        
+        # 去重並限制數量
+        unique_products = list(dict.fromkeys(products))[:10]
+        if unique_products:
+            key_info['product_codes'] = unique_products
+        
+        # 去重相關編號並排序（主要編號放前面）
+        unique_related = []
+        seen = set()
+        
+        # 先加入主要編號
+        if key_info.get('doc_number') and key_info['doc_number'] not in seen:
+            unique_related.append(key_info['doc_number'])
+            seen.add(key_info['doc_number'])
+            
+        if key_info.get('ecn_number') and key_info['ecn_number'] not in seen:
+            unique_related.append(key_info['ecn_number'])
+            seen.add(key_info['ecn_number'])
+        
+        # 再加入其他相關編號
+        for num in related_numbers:
+            if num not in seen and len(unique_related) < 20:
+                unique_related.append(num)
+                seen.add(num)
+        
+        key_info['related_doc_numbers'] = unique_related
+        
+        return key_info
+
+    @classmethod
+    def extract_description(cls, content: str, doc_type: str) -> str:
+        """提取核心描述（如設變說明）"""
+        cleaned_content = cls.clean_ocr_noise(content)
+        
+        # 根據文件類型提取不同的描述
+        description_patterns = {
+            'ECN': [
+                r'設變說明\s*[:：]\s*(.+?)(?:設變申請人|申請人|$)',
+                r'變更說明\s*[:：]\s*(.+?)(?:申請|負責|$)',
+                r'說明\s*[:：]\s*(.+?)(?:\n|申請|$)'
+            ],
+            'CPR': [
+                r'客訴內容\s*[:：]\s*(.+?)(?:處理|回覆|$)',
+                r'問題描述\s*[:：]\s*(.+?)(?:原因|分析|$)',
+                r'不良現象\s*[:：]\s*(.+?)(?:原因|對策|$)'
+            ],
+            'DEFAULT': [
+                r'說明\s*[:：]\s*(.+?)(?:\n{2}|申請|負責|$)',
+                r'內容\s*[:：]\s*(.+?)(?:\n{2}|日期|$)',
+                r'描述\s*[:：]\s*(.+?)(?:\n{2}|備註|$)'
+            ]
+        }
+        
+        patterns = description_patterns.get(doc_type, description_patterns['DEFAULT'])
+        
+        for pattern in patterns:
+            match = re.search(pattern, cleaned_content, re.DOTALL)
+            if match:
+                description = match.group(1).strip()
+                # 清理描述中的雜訊
+                description = cls.clean_ocr_noise(description)
+                # 限制長度
+                if len(description) > 500:
+                    description = description[:497] + '...'
+                return description
+        
+        return ""
+
     @classmethod
     def extract_doc_number(cls, content: str, file_name: str = '') -> str:
         """改進的文件編號提取"""
@@ -208,25 +380,34 @@ class ImprovedContentParser:
     @classmethod
     def extract_responsible_units(cls, content: str) -> List[str]:
         """提取責任單位"""
+        cleaned_content = cls.clean_ocr_noise(content)
         units = []
-        unit_keywords = [
-            '品保課', '製造課', '工程部', '研發部', 
-            '業務部', '採購部', '倉管課', 'IT部'
+        
+        # 責任單位模式
+        patterns = [
+            r'責任單位\s*[:：]\s*([^,，\n]+)',
+            r'負責單位\s*[:：]\s*([^,，\n]+)',
+            r'承辦單位\s*[:：]\s*([^,，\n]+)',
+            r'執行單位\s*[:：]\s*([^,，\n]+)'
         ]
         
-        for unit in unit_keywords:
-            if unit in content:
-                units.append(unit)
+        for pattern in patterns:
+            matches = re.findall(pattern, cleaned_content)
+            units.extend(matches)
         
-        # 也檢查英文縮寫
-        if 'QC' in content or 'QA' in content:
-            if '品保課' not in units:
-                units.append('品保課')
-        if 'RD' in content or 'R&D' in content:
-            if '研發部' not in units:
-                units.append('研發部')
+        # 清理和去重
+        clean_units = []
+        for unit in units:
+            unit = unit.strip()
+            if unit and len(unit) < 20 and unit not in clean_units:
+                # 嘗試映射到標準部門名稱
+                for key, value in cls.DEPARTMENT_MAPPING.items():
+                    if key in unit:
+                        unit = value
+                        break
+                clean_units.append(unit)
         
-        return units[:5]
+        return clean_units[:5]  # 最多返回5個單位
     
     @classmethod
     def extract_date(cls, content: str) -> Optional[str]:
@@ -285,35 +466,176 @@ class ImprovedContentParser:
         return 'General'
     
     @classmethod
-    def generate_summary(cls, content: str, max_length: int = 500) -> str:
-        """生成更好的摘要"""
-        # 清理內容
-        lines = content.split('\n')
-        meaningful_lines = []
+    def generate_summary(cls, content: str, doc_type: str = None, file_name: str = "") -> Dict[str, any]:
+        """生成精簡摘要並保存原始內容"""
+        # 保存原始內容（限制長度以避免過大）
+        original_content = content[:5000] if len(content) > 5000 else content
         
-        for line in lines:
-            line = line.strip()
-            # 跳過無意義的行
-            if len(line) < 5:
-                continue
-            if line.startswith('=') or line.startswith('-'):
-                continue
-            if re.match(r'^[\d\s\.\-/]+$', line):  # 純數字日期
-                continue
+        # 清理內容用於分析
+        cleaned_content = cls.clean_ocr_noise(content)
+        
+        # 提取關鍵資訊
+        key_info = cls.extract_key_info(cleaned_content, doc_type or '')
+        
+        # 提取描述
+        description = cls.extract_description(cleaned_content, doc_type or '')
+        
+        # 構建精簡摘要（按照您的格式要求）
+        summary_parts = []
+        
+        # 加入文件編號
+        if 'doc_number' in key_info and key_info['doc_number']:
+            summary_parts.append(f"單號{key_info['doc_number']}")
+        
+        # 加入ECN編號（如果有）
+        if 'ecn_number' in key_info and key_info['ecn_number']:
+            summary_parts.append(f"設變申請單號：{key_info['ecn_number']}")
+        
+        # 加入品號（如果有，限制3個）
+        if 'product_codes' in key_info and key_info['product_codes']:
+            products_str = '、'.join(key_info['product_codes'][:3])
+            summary_parts.append(f"品號：{products_str}")
+        
+        # 加入描述（根據文件類型調整）
+        if description:
+            if doc_type == 'ECN':
+                summary_parts.append(f"設變說明：{description}")
+            elif doc_type == 'Complaint' or doc_type == 'CPR':
+                summary_parts.append(f"客訴內容：{description}")
+            elif doc_type == 'TestReport':
+                summary_parts.append(f"測試內容：{description}")
+            else:
+                summary_parts.append(f"說明：{description}")
+        
+        # 如果沒有找到任何關鍵資訊，從內容中提取重要句子
+        if not summary_parts:
+            lines = cleaned_content.split('\n')
+            meaningful_lines = []
+            for line in lines[:15]:  # 看前15行
+                line = line.strip()
+                # 過濾掉無意義的行
+                if (len(line) > 8 and 
+                    not line.startswith('=') and 
+                    not line.startswith('-') and
+                    not re.match(r'^\d{4}/\d{1,2}/\d{1,2}', line) and  # 日期行
+                    'about:blank' not in line):
+                    meaningful_lines.append(line)
+                    if len(meaningful_lines) >= 2:
+                        break
             
-            meaningful_lines.append(line)
-            
-            # 累積到足夠長度
-            if sum(len(l) for l in meaningful_lines) > max_length:
-                break
+            if meaningful_lines:
+                summary_parts = meaningful_lines[:2]
         
         # 組合摘要
-        summary = ' '.join(meaningful_lines[:10])  # 最多10行
+        summary = ' '.join(summary_parts)
         
-        if len(summary) > max_length:
-            summary = summary[:max_length-3] + '...'
+        # 限制摘要長度
+        if len(summary) > 300:
+            summary = summary[:297] + '...'
         
-        return summary
+        # 生成向量檢索友好的關鍵字
+        keywords = []
+        
+        # 1. 文件類型相關關鍵字
+        if doc_type:
+            keywords.append(doc_type)
+            type_keywords = {
+                'ECN': ['設變', '工程變更', '變更單', '設計變更'],
+                'Complaint': ['客訴', '客戶投訴', '品質問題', '客戶反映'],
+                'CPR': ['客訴', '客戶投訴', '品質問題'],
+                'FMEA': ['失效分析', '風險評估', 'FMEA'],
+                'TestReport': ['測試', '檢驗', '報告', '品質檢測'],
+                'Specification': ['規格', '規範', '標準'],
+                'WorkOrder': ['工單', '生產', '製造'],
+                'PurchaseOrder': ['採購', '訂單']
+            }
+            if doc_type in type_keywords:
+                keywords.extend(type_keywords[doc_type])
+        
+        # 2. 產品相關關鍵字
+        if 'product_codes' in key_info and key_info['product_codes']:
+            # 加入產品編號
+            keywords.extend(key_info['product_codes'][:5])
+            
+            # 根據產品編號推斷產品系列
+            for code in key_info['product_codes']:
+                if code.startswith('G'):
+                    keywords.extend(['G鎖', '掛鎖'])
+                elif code.startswith('L'):
+                    keywords.extend(['L鎖', '鎖具'])
+                elif code.startswith('T'):
+                    keywords.extend(['T鎖'])
+                elif code.startswith('OB'):
+                    keywords.extend(['OB系列'])
+                elif code.startswith('F'):
+                    keywords.extend(['五金配件'])
+        
+        # 3. 技術關鍵字（從內容中提取）
+        technical_keywords = [
+            ('材料', ['材料', '材質']),
+            ('製程', ['製程', '工藝', '加工']),
+            ('品質', ['品質', 'QC', 'QA', '檢驗']),
+            ('尺寸', ['尺寸', '規格', '公差']),
+            ('表面處理', ['表面處理', '電鍍', '塗裝']),
+            ('組裝', ['組裝', '裝配']),
+            ('包裝', ['包裝', '包裝材料']),
+            ('交期', ['交期', '出貨', '交貨']),
+            ('成本', ['成本', '價格']),
+            ('客戶要求', ['客戶要求', '客戶需求']),
+            ('改善', ['改善', '優化', '改進']),
+            ('問題', ['問題', '異常', '不良']),
+            ('緊急', ['緊急', '急件']),
+            ('重要', ['重要', '重大'])
+        ]
+        
+        for keyword, variants in technical_keywords:
+            for variant in variants:
+                if variant in cleaned_content:
+                    keywords.append(keyword)
+                    break
+        
+        # 4. 部門關鍵字
+        dept_found = cls.extract_department(cleaned_content)
+        if dept_found:
+            keywords.append(dept_found)
+        
+        # 5. 從文件編號和相關編號中提取關鍵字
+        if 'related_doc_numbers' in key_info:
+            # 加入相關編號作為關鍵字（有助於關聯檢索）
+            keywords.extend(key_info['related_doc_numbers'][:5])
+        
+        # 6. 特殊標記關鍵字
+        special_markers = [
+            (r'緊急|急件|URGENT', '緊急'),
+            (r'重要|重大|IMPORTANT', '重要'),
+            (r'保密|機密|CONFIDENTIAL', '機密'),
+            (r'客戶要求|客戶指定', '客戶要求'),
+            (r'成本降低|降本', '成本優化'),
+            (r'品質改善|品質提升', '品質改善'),
+            (r'交期縮短|急交', '交期'),
+            (r'新產品|新開發', '新產品'),
+            (r'停產|EOL', '停產'),
+            (r'量產|批量', '量產')
+        ]
+        
+        for pattern, keyword in special_markers:
+            if re.search(pattern, cleaned_content, re.IGNORECASE):
+                keywords.append(keyword)
+        
+        # 去重並限制數量（保留順序，重要關鍵字在前）
+        unique_keywords = []
+        seen = set()
+        for keyword in keywords:
+            if keyword not in seen and len(unique_keywords) < 20:
+                unique_keywords.append(keyword)
+                seen.add(keyword)
+        
+        return {
+            'summary': summary,
+            'original_extracted_content': original_content,  # 原始內容
+            'key_info': key_info,
+            'keywords': unique_keywords
+        }
 
 class DatabaseManager:
     """資料庫管理器"""
@@ -356,11 +678,11 @@ class DatabaseManager:
         return self.connection
     
     def init_database(self):
-        """初始化資料庫表"""
+        """初始化資料庫表 - 包含所有必要欄位"""
         conn = self.get_connection()
         try:
             with conn.cursor() as cursor:
-                # 建立 structured_documents 表
+                # 建立 structured_documents 表 - 完整版本
                 cursor.execute("""
                 CREATE TABLE IF NOT EXISTS structured_documents (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -378,12 +700,14 @@ class DatabaseManager:
                     product_category VARCHAR(50),
                     product_codes JSON,
                     product_names JSON,
+                    related_doc_numbers JSON,
                     
                     applicant VARCHAR(100),
                     department VARCHAR(100),
                     responsible_units JSON,
                     
                     summary TEXT,
+                    original_extracted_content LONGTEXT,
                     keywords JSON,
                     status VARCHAR(50),
                     priority VARCHAR(20),
@@ -423,18 +747,34 @@ class DatabaseManager:
             return []
     
     def save_structured_document(self, doc_data: Dict) -> bool:
-        """儲存結構化文件"""
+        """儲存結構化文件 - 完整版本"""
         try:
             conn = self.get_connection()
             with conn.cursor() as cursor:
                 # 處理 JSON 欄位
-                json_fields = ['product_codes', 'product_names', 'responsible_units', 'keywords']
+                json_fields = ['product_codes', 'product_names', 'responsible_units', 'keywords', 'related_doc_numbers']
                 for field in json_fields:
                     if field in doc_data and doc_data[field] is not None:
-                        doc_data[field] = json.dumps(doc_data[field], ensure_ascii=False)
+                        # 確保是 list 類型才進行 JSON 序列化
+                        if isinstance(doc_data[field], list):
+                            doc_data[field] = json.dumps(doc_data[field], ensure_ascii=False)
+                        else:
+                            # 如果不是 list，轉換為空 list
+                            doc_data[field] = json.dumps([], ensure_ascii=False)
                 
-                # 建立 SQL
-                fields = list(doc_data.keys())
+                # 建立 SQL - 包含所有欄位
+                allowed_fields = [
+                    'original_doc_id', 'doc_type', 'doc_number', 'doc_date',
+                    'file_name', 'file_url', 'file_path', 'file_size', 'file_hash',
+                    'product_category', 'product_codes', 'product_names', 'related_doc_numbers',
+                    'applicant', 'department', 'responsible_units',
+                    'summary', 'original_extracted_content', 'keywords', 'status', 'priority', 'parsed_at'
+                ]
+                
+                # 過濾掉不存在的欄位
+                filtered_doc_data = {k: v for k, v in doc_data.items() if k in allowed_fields}
+                
+                fields = list(filtered_doc_data.keys())
                 placeholders = ['%s'] * len(fields)
                 update_fields = [f"{f}=VALUES({f})" for f in fields if f != 'original_doc_id']
                 
@@ -444,7 +784,7 @@ class DatabaseManager:
                 ON DUPLICATE KEY UPDATE {', '.join(update_fields)}
                 """
                 
-                cursor.execute(sql, list(doc_data.values()))
+                cursor.execute(sql, list(filtered_doc_data.values()))
                 conn.commit()
                 
                 # 更新處理狀態
@@ -477,15 +817,34 @@ class DocumentProcessor:
         self.running = False
     
     def process_document(self, doc: Dict) -> bool:
-        """處理單一文件"""
+        """處理單一文件 - 完整版本"""
         try:
             doc_id = doc.get('doc_id')
             content = doc.get('content', '')
-            file_name = doc.get('file_name', '')
+            file_name = doc.get('file_name', '')  # 從 technical_documents 取得
             
             if not content:
                 logger.warning(f"文件 {doc_id} 沒有內容")
                 return False
+                
+            # 確保有 file_name
+            if not file_name:
+                logger.warning(f"文件 {doc_id} 沒有檔案名稱，嘗試查詢資料庫")
+                # 如果沒有檔案名稱，嘗試直接查詢
+                try:
+                    conn = self.db.get_connection()
+                    with conn.cursor() as cursor:
+                        cursor.execute("SELECT file_name FROM technical_documents WHERE doc_id = %s", (doc_id,))
+                        result = cursor.fetchone()
+                        if result and result['file_name']:
+                            file_name = result['file_name']
+                            logger.info(f"從資料庫取得檔案名稱: {file_name}")
+                        else:
+                            file_name = f"document_{doc_id}.pdf"  # 預設檔名
+                            logger.warning(f"無法取得檔案名稱，使用預設: {file_name}")
+                except Exception as e:
+                    logger.error(f"查詢檔案名稱失敗: {e}")
+                    file_name = f"document_{doc_id}.pdf"
             
             logger.info(f"處理文件 {doc_id}, 檔案: {file_name}")
             
@@ -495,76 +854,138 @@ class DocumentProcessor:
                 'parsed_at': datetime.now().isoformat()
             }
             
-            # 文件類型
+            # 文件類型偵測
             doc_type = self.parser.detect_doc_type(content)
             structured['doc_type'] = doc_type
             
-            # 文件編號（傳入檔名協助判斷）
-            doc_number = self.parser.extract_doc_number(content, file_name)
-            structured['doc_number'] = doc_number if doc_number else f"DOC-{doc_id}"
+            # 使用改進的摘要生成
+            summary_result = ImprovedContentParser.generate_summary(
+                content, 
+                doc_type, 
+                file_name
+            )
             
-            # 日期
+            # 設定摘要和原始內容
+            structured['summary'] = summary_result['summary']
+            structured['original_extracted_content'] = summary_result['original_extracted_content']
+            
+            # 從關鍵資訊中提取各種編號
+            key_info = summary_result['key_info']
+            
+            # 文件編號
+            if 'doc_number' in key_info and key_info['doc_number']:
+                structured['doc_number'] = key_info['doc_number']
+            else:
+                # 嘗試從檔名提取編號
+                doc_number = self.parser.extract_doc_number(content, file_name)
+                structured['doc_number'] = doc_number if doc_number else f"DOC-{doc_id}"
+            
+            # 相關文件編號（包含品號、單號等）
+            structured['related_doc_numbers'] = key_info.get('related_doc_numbers', [])
+            
+            # 關鍵字（向量檢索用）
+            structured['keywords'] = summary_result.get('keywords', [])
+            
+            # 其他欄位提取
             structured['doc_date'] = self.parser.extract_date(content)
-            
-            # 產品資訊
-            product_codes, product_names, category = self.parser.extract_product_info(content)
-            structured['product_codes'] = product_codes
-            structured['product_names'] = product_names
-            structured['product_category'] = category
-            
-            # 人員與部門
             structured['applicant'] = self.parser.extract_applicant(content)
             structured['department'] = self.parser.extract_department(content)
-            structured['responsible_units'] = self.parser.extract_responsible_units(content)
+            structured['responsible_units'] = ImprovedContentParser.extract_responsible_units(content)
             
-            # 摘要
-            structured['summary'] = self.parser.generate_summary(content)
+            # 產品資訊
+            if 'product_codes' in key_info and key_info['product_codes']:
+                structured['product_codes'] = key_info['product_codes']
+                # 可以進一步實作產品名稱提取
+                product_codes, product_names, category = self.parser.extract_product_info(content)
+                structured['product_names'] = product_names
+                structured['product_category'] = category
+            else:
+                # 備援方案
+                product_codes, product_names, category = self.parser.extract_product_info(content)
+                structured['product_codes'] = product_codes
+                structured['product_names'] = product_names
+                structured['product_category'] = category
             
-            # 關鍵字
-            keywords = []
-            if doc_type:
-                keywords.append(doc_type)
-            if category:
-                keywords.append(category)
-            keywords.extend(product_codes[:3])  # 加入前3個產品編號作為關鍵字
-            structured['keywords'] = list(set(keywords))[:10]
+            # 檔案資訊設定（重要：確保檔案連結正確）
+            structured['file_name'] = file_name
             
-            # 檔案資訊
-            if file_name:
-                structured['file_name'] = file_name
-                structured['file_url'] = f"{FILE_SERVICE_BASE_URL}/{doc_id}/{file_name}"
-                
-                file_path = f"{PDF_STORAGE_PATH}/{doc_id}/{file_name}"
-                structured['file_path'] = file_path
-                
-                try:
-                    if os.path.exists(file_path):
-                        structured['file_size'] = os.path.getsize(file_path)
-                        with open(file_path, 'rb') as f:
-                            structured['file_hash'] = hashlib.sha256(f.read()).hexdigest()
-                except:
-                    pass
+            # 檔案路徑：本地存儲路徑
+            structured['file_path'] = f"{PDF_STORAGE_PATH}/{file_name}"
             
-            # 優先級
-            if any(word in content for word in ['嚴重', '緊急', '立即', '重大']):
+            # 檔案 URL：供 RAG-API 和 file-server 使用
+            # 格式：http://localhost:8088/download/{doc_id}/{file_name}
+            structured['file_url'] = f"{FILE_SERVICE_BASE_URL}/download/{doc_id}/{file_name}"
+            
+            # 嘗試取得檔案資訊
+            try:
+                actual_path = structured['file_path']
+                if os.path.exists(actual_path):
+                    structured['file_size'] = os.path.getsize(actual_path)
+                    with open(actual_path, 'rb') as f:
+                        structured['file_hash'] = hashlib.sha256(f.read()).hexdigest()
+                    logger.info(f"  檔案存在: {actual_path} ({structured['file_size']} bytes)")
+                else:
+                    # 嘗試其他可能的路徑
+                    alternative_paths = [
+                        f"{PDF_STORAGE_PATH}/{doc_id}/{file_name}",  # 可能在子目錄
+                        f"/mnt/pdf/files/{doc_id}/{file_name}",
+                        f"/app/pdf/files/{file_name}",
+                    ]
+                    
+                    file_found = False
+                    for alt_path in alternative_paths:
+                        if os.path.exists(alt_path):
+                            structured['file_path'] = alt_path
+                            structured['file_size'] = os.path.getsize(alt_path)
+                            with open(alt_path, 'rb') as f:
+                                structured['file_hash'] = hashlib.sha256(f.read()).hexdigest()
+                            logger.info(f"  檔案找到於: {alt_path}")
+                            file_found = True
+                            break
+                    
+                    if not file_found:
+                        structured['file_size'] = 0
+                        structured['file_hash'] = ''
+                        logger.warning(f"  檔案不存在: {actual_path}")
+                        
+            except Exception as e:
+                logger.warning(f"無法讀取檔案資訊 {file_name}: {e}")
+                structured['file_size'] = 0
+                structured['file_hash'] = ''
+            
+            # 優先級判定（基於內容分析）
+            priority_keywords_high = ['嚴重', '緊急', '立即', '重大', '停線', '客戶抱怨']
+            priority_keywords_normal = ['一般', '例行', '定期']
+            
+            if any(word in content for word in priority_keywords_high):
                 structured['priority'] = 'HIGH'
-            elif any(word in content for word in ['中等', '一般']):
-                structured['priority'] = 'NORMAL'
+            elif any(word in content for word in priority_keywords_normal):
+                structured['priority'] = 'NORMAL'  
             else:
                 structured['priority'] = 'LOW'
             
             structured['status'] = 'PARSED'
             
-            # 儲存
+            # 儲存到資料庫
             success = self.db.save_structured_document(structured)
             
             if success:
-                logger.info(f"文件 {doc_id} 處理成功: 編號={doc_number}, 類型={doc_type}, 部門={structured['department']}")
+                logger.info(f"✅ 文件 {doc_id} 處理成功:")
+                logger.info(f"   編號: {structured['doc_number']}")
+                logger.info(f"   類型: {doc_type}")
+                logger.info(f"   檔案: {structured['file_name']}")
+                logger.info(f"   檔案路徑: {structured['file_path']}")
+                logger.info(f"   檔案URL: {structured['file_url']}")
+                logger.info(f"   相關編號: {structured['related_doc_numbers'][:5]}...")
+                logger.info(f"   關鍵字: {structured['keywords'][:5]}...")
+                logger.debug(f"   摘要: {structured['summary']}")
+            else:
+                logger.error(f"❌ 文件 {doc_id} 儲存失敗")
             
             return success
             
         except Exception as e:
-            logger.error(f"處理文件失敗: {e}", exc_info=True)
+            logger.error(f"處理文件失敗 {doc_id}: {e}", exc_info=True)
             return False
     
     def run(self):

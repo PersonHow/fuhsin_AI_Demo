@@ -11,9 +11,9 @@
 """
 from __future__ import annotations
 
-import os, time, json, signal, requests
+import os, time, json, signal, requests, math, re, hashlib
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from requests.auth import HTTPBasicAuth
 
 try:
@@ -24,9 +24,9 @@ except Exception:  # 避免環境暫無 openai 套件
 # -----------------------------
 # 環境變數
 # -----------------------------
-ES_URL = os.environ.get("ES_URL", "http://elasticsearch:9200").rstrip("/")
-ES_USER = os.getenv("ES_USER")
-ES_PASS = os.getenv("ES_PASS")
+ES_URL = os.environ.get("ES_URL", "http://localhost:9200")
+ES_USER = os.environ.get("ES_USER", "elastic")
+ES_PASS = os.environ.get("ES_PASS", "admin@12345")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip(
     "/"
@@ -45,7 +45,7 @@ MAX_RETRIES = int(os.environ.get("MAX_RETRIES", "5"))
 session = requests.Session()
 if ES_USER and ES_PASS:
     session.auth = HTTPBasicAuth(ES_USER, ES_PASS)
-session.headers.update({"Content-Type": "application/json"})
+# session.headers.update({"Content-Type": "application/json"})
 
 client: Optional[OpenAI] = None
 if OPENAI_API_KEY and OpenAI is not None:
@@ -54,7 +54,7 @@ if OPENAI_API_KEY and OpenAI is not None:
 _SHOULD_STOP = False
 
 # -----------------------------
-# 工具方法
+# 工具方法 (utils 區域)
 # -----------------------------
 
 
@@ -140,6 +140,12 @@ def http_post(
     raise RuntimeError("POST 重試已用盡")
 
 
+def _is_finite_vector(vec: Optional[List[float]], dims: int) -> bool:
+    if not isinstance(vec, list) or len(vec) != dims:
+        return False
+    return all(isinstance(x, (int, float)) and math.isfinite(float(x)) for x in vec)
+
+
 # -----------------------------
 # 向量生成器（保留原結構/命名）
 # -----------------------------
@@ -171,18 +177,44 @@ class VectorGenerator:
     def batch_generate(self, texts: List[str]) -> List[Optional[List[float]]]:
         if client is None:
             return [None for _ in texts]
+
+        # 預處理：統一成字串、截長、去空白
+        processed: List[str] = []
+        for t in texts:
+            s = "" if t is None else str(t)
+            s = s[:8000].strip()
+            processed.append(s)
+
+        # 建立過濾後的 inputs 與索引映射
+        inputs: List[str] = []
+        idx_map: List[int] = []
+        for i, s in enumerate(processed):
+            if s:  # 非空才送進 API（避免 ["", ...] 致命 400）
+                inputs.append(s)
+                idx_map.append(i)
+
+        # 若全部是空字串，直接回傳全 None
+        if not inputs:
+            return [None for _ in texts]
+
         try:
             resp = client.embeddings.create(
                 model=self.model,
-                input=[t[:8000] for t in texts],
+                input=inputs,
                 encoding_format="float",
             )
-            return [d.embedding for d in resp.data]  # type: ignore[attr-defined]
+            result: List[Optional[List[float]]] = [None for _ in texts]
+            for out_vec, orig_idx in zip([d.embedding for d in resp.data], idx_map):  # type: ignore[attr-defined]
+                result[orig_idx] = out_vec
+            return result
         except Exception as e:
             log(f"⚠️ 批量生成失敗，改為逐筆：{e}")
             out: List[Optional[List[float]]] = []
-            for t in texts:
-                out.append(self.generate(t))
+            for s in processed:
+                if not s:
+                    out.append(None)
+                    continue
+                out.append(self.generate(s))
                 time.sleep(0.1)
             return out
 
@@ -195,6 +227,10 @@ class ElasticsearchVectorUpdater:
 
     def __init__(self, vector_gen: VectorGenerator):
         self.vector_gen = vector_gen
+        self.es_url = ES_URL
+        self.index_pattern = INDEX_PATTERN
+        self.dims = vector_gen.dimension
+        self.session = requests.Session()
 
     def _list_indices(self, index_pattern: str) -> List[str]:
         # 優先用 _cat/indices；若失敗再退回 GET /{pattern}
@@ -248,10 +284,11 @@ class ElasticsearchVectorUpdater:
     def find_documents_without_vectors(
         self, index_pattern: str = INDEX_PATTERN, size: int = 100
     ) -> List[Dict[str, Any]]:
-        """搜尋尚未建立 content_vector 的文件"""
+        """搜尋尚未建立 content_vector 的文件 - 修復版"""
         query = {
             "size": size,
-            "_source": ["searchable_content", "all_content", "field_*"],
+            # 修復：不限制 _source，取得所有欄位
+            "_source": True,  
             "query": {"bool": {"must_not": [{"exists": {"field": "content_vector"}}]}},
             "sort": [{"_doc": "asc"}],
         }
@@ -259,80 +296,245 @@ class ElasticsearchVectorUpdater:
             r = http_post(f"{ES_URL}/{index_pattern}/_search", json_body=query)
             if r.ok:
                 body = r.json()
-                return body.get("hits", {}).get("hits", [])  # type: ignore[no-any-return]
+                hits = body.get("hits", {}).get("hits", [])
+                
+                # 加入偵錯日誌
+                if hits:
+                    log(f"📋 找到 {len(hits)} 個文檔，範例欄位: {list(hits[0]['_source'].keys())[:10]}")
+                
+                return hits
             log(f"⚠️ 搜尋失敗 {r.status_code}: {r.text[:200]}")
         except Exception as e:
             log(f"⚠️ 搜尋例外：{e}")
         return []
 
     def _extract_text(self, source: Dict[str, Any]) -> str:
-        # 優先使用描述性欄位
-        priority_fields = [
-            "field_description",
-            "field_product_name",
-            "field_complaint_type",
-        ]
-        text_parts = []
+        """修復版文本提取 - 更全面的欄位處理"""
+        def _to_text(x) -> str:
+            if x is None:
+                return ""
+            if isinstance(x, str):
+                return x
+            if isinstance(x, (list, tuple, set)):
+                return " ".join(map(str, x))
+            if isinstance(x, dict):
+                return " ".join(map(str, x.values()))
+            return str(x)
 
+        # 擴展優先欄位列表
+        priority_fields = [
+            # 產品相關
+            "product_id", "product_ids", "product_name", "product_names",
+            "field_product_id", "field_product_name",
+            # 描述相關
+            "description", "summary", "title", "content", "text",
+            "field_description", "field_summary",
+            # 客訴相關
+            "complaint_type", "complaint_description", "complaint_content",
+            "field_complaint_type", "field_complaint_description",
+            # 文件相關
+            "file_name", "document_name", "doc_type",
+            # 狀態相關
+            "status", "field_status", "handling_status",
+            # 可搜尋內容
+            "searchable_content", "all_content"
+        ]
+        
+        text_parts = []
+        
+        # 嘗試從優先欄位提取
         for field in priority_fields:
             if field in source and source[field]:
-                text_parts.append(str(source[field]))
+                value = _to_text(source[field])
+                if value and value.strip():  # 確保不是空白字串
+                    text_parts.append(value)
+        
+        # 如果沒有找到任何文本，嘗試提取所有 field_ 開頭的欄位
+        if not text_parts:
+            for key, value in source.items():
+                if key.startswith("field_") and value:
+                    value_text = _to_text(value)
+                    if value_text and value_text.strip():
+                        text_parts.append(value_text)
+        
+        # 如果還是沒有，嘗試使用所有非系統欄位
+        if not text_parts:
+            skip_fields = {"_id", "_index", "_type", "_score", "content_vector", "vector_generated_at"}
+            for key, value in source.items():
+                if key not in skip_fields and value:
+                    value_text = _to_text(value)
+                    if value_text and value_text.strip():
+                        text_parts.append(value_text)
+        
+        result = " ".join(text_parts)
+        
+        # 記錄警告如果文本太短
+        if len(result) < 10:
+            log(f"⚠️ 文本過短 ({len(result)} 字元)，可能影響向量品質")
+            
+        return result
 
-        return " ".join(text_parts) if text_parts else source.get("all_content", "")
-
-    def update_document_vectors(self, documents: List[Dict[str, Any]]) -> None:
-        """更新文檔向量"""
-        if not documents:
-            return
-        texts = [self._extract_text(doc.get("_source", {})) for doc in documents]
-        log(f"🔄 生成 {len(texts)} 個向量…")
+    def update_document_vectors(self, docs: list[dict]) -> tuple[int, int]:
+        """修復版向量更新 - 加入更多錯誤處理"""
+        if not docs:
+            return (0, 0)
+            
+        # 提取文本並記錄
+        texts = []
+        for i, d in enumerate(docs):
+            text = self._extract_text(d["_source"])
+            texts.append(text)
+            
+            # 偵錯：記錄前幾個文本範例
+            if i < 3:
+                preview = text[:100] + "..." if len(text) > 100 else text
+                log(f"  文檔 {i+1}: {d['_id'][:8]}... 文本長度: {len(text)} 預覽: {preview}")
+        
+        # 批次生成向量
+        log(f"🔄 開始生成 {len(texts)} 個向量...")
         embeddings = self.vector_gen.batch_generate(texts)
+        
+        # 檢查生成結果
+        valid_count = sum(1 for e in embeddings if e is not None)
+        log(f"  生成結果: {valid_count}/{len(embeddings)} 個有效向量")
+        
+        if valid_count == 0:
+            log(f"❌ 所有向量生成失敗！請檢查 OpenAI API")
+            return (0, 0)
+        
+        # 準備寫入資料
+        doc_ids = [d["_id"] for d in docs]
+        indices = [d.get("_index") for d in docs]
+        
+        # 修復：使用正確的維度
+        dims = self.vector_gen.dimension
+        log(f"  使用維度: {dims} (模型: {self.vector_gen.model})")
+        
+        # 寫入向量
+        writer = ESVectorWriter(
+            self.es_url,
+            index=None,
+            field="content_vector",
+            session=session,
+        )
+        
+        ok, ng = writer.upsert_vectors(doc_ids, indices, embeddings, dims)
+        
+        # 詳細記錄結果
+        if ok > 0:
+            log(f"✅ 成功寫入 {ok} 筆向量")
+        if ng > 0:
+            log(f"❌ 失敗 {ng} 筆")
+            
+        # 如果全部失敗，顯示更多偵錯資訊
+        if ok == 0 and ng == 0 and valid_count > 0:
+            log(f"⚠️ 有 {valid_count} 個有效向量但寫入 0 筆，可能的原因：")
+            log(f"  - 索引名稱問題: {set(indices[:5])}")
+            log(f"  - 文檔 ID 問題: {doc_ids[:5]}")
+            log(f"  - 向量維度不符: 期望 {dims}")
+            
+        return (ok, ng)
 
-        # 構建 _bulk 請求
+
+class ESVectorWriter:
+    def __init__(
+        self,
+        base_url: str,
+        index: str,
+        field: str = "content_vector",
+        session: Optional[requests.Session] = None,
+    ):
+        self.base_url = base_url
+        self.index = index
+        self.field = field
+        self.session = session or requests.Session()
+
+    def upsert_vectors(
+        self, ids: List[str], indices: List[str], vectors: List[Optional[List[float]]], dims: int
+    ) -> Tuple[int, int]:
+        """修復版批次寫入"""
+        assert len(indices) == len(ids) == len(vectors)
         lines: List[str] = []
-        for doc, emb in zip(documents, embeddings):
-            if not emb:
+        skip_count = 0
+        
+        for idx, _id, vec in zip(indices, ids, vectors):
+            # 檢查索引
+            if not idx or "*" in idx or "?" in idx:
+                skip_count += 1
+                log(f"  跳過：索引無效 '{idx}'")
                 continue
-            lines.append(
-                json.dumps(
-                    {"update": {"_index": doc.get("_index"), "_id": doc.get("_id")}}
-                )
-            )
-            lines.append(
-                json.dumps(
-                    {
-                        "doc": {
-                            "content_vector": emb,
-                            "vector_generated_at": datetime.utcnow().isoformat(),
-                        }
-                    }
-                )
-            )
-        if not lines:
-            log("ℹ️ 沒有可更新的向量（文本為空或全部失敗）")
-            return
-        payload = "\n".join(lines) + "\n"
-        try:
-            r = http_post(
-                f"{ES_URL}/_bulk",
-                data=payload,
-                headers={"Content-Type": "application/x-ndjson"},
-            )
-            if r.ok:
-                res = r.json()
-                if not res.get("errors"):
-                    log(f"✅ 成功更新 {len(documents)} 個文檔的向量")
+                
+            # 檢查 ID
+            if not _id:
+                skip_count += 1
+                log(f"  跳過：ID 為空")
+                continue
+                
+            # 檢查向量
+            if not _is_finite_vector(vec, dims):
+                skip_count += 1
+                if vec is None:
+                    log(f"  跳過：向量為 None (ID: {_id[:8]}...)")
                 else:
-                    fails = sum(
-                        1
-                        for it in res.get("items", [])
-                        if any(v.get("error") for v in it.values())
-                    )
-                    log(f"⚠️ 部分更新失敗：{fails}/{len(documents)}")
-            else:
-                log(f"❌ 批量更新失敗 {r.status_code}: {r.text[:200]}")
+                    log(f"  跳過：向量無效 (ID: {_id[:8]}..., 維度: {len(vec) if isinstance(vec, list) else 'N/A'})")
+                continue
+
+            # 準備批次更新資料
+            action = {"update": {"_index": idx, "_id": str(_id)}}
+            doc = {
+                "doc": {
+                    self.field: vec,
+                    "vector_generated_at": datetime.now().isoformat()
+                }, 
+                "doc_as_upsert": True
+            }
+            lines.append(json.dumps(action, ensure_ascii=False))
+            lines.append(json.dumps(doc, ensure_ascii=False))
+
+        if skip_count > 0:
+            log(f"  共跳過 {skip_count} 筆無效資料")
+            
+        if not lines:
+            return (0, 0)
+
+        # 執行批次更新
+        body = "\n".join(lines) + "\n"
+        try:
+            resp = self.session.post(
+                f"{self.base_url}/_bulk",
+                data=body,
+                headers={"Content-Type": "application/x-ndjson"},
+                params={"refresh": "wait_for"},
+                timeout=60,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+            success, failed = 0, 0
+            bad_msgs = []
+            
+            for it in data.get("items", []):
+                op, detail = next(iter(it.items()))
+                if "error" in detail:
+                    failed += 1
+                    if len(bad_msgs) < 5:
+                        error_msg = detail["error"]
+                        if isinstance(error_msg, dict):
+                            error_msg = error_msg.get("reason", str(error_msg))
+                        bad_msgs.append(error_msg)
+                else:
+                    success += 1
+
+            if data.get("errors") and bad_msgs:
+                log(f"❗ Bulk 錯誤（前5）：")
+                for i, msg in enumerate(bad_msgs, 1):
+                    log(f"    {i}. {msg}")
+
+            return (success, failed)
+            
         except Exception as e:
-            log(f"❌ 批量更新例外：{e}")
+            log(f"❌ 批次寫入失敗: {e}")
+            return (0, len(lines) // 2)  # 每個文檔產生 2 行
 
 
 # -----------------------------
@@ -381,7 +583,7 @@ def main() -> None:
             else:
                 log("😴 所有文檔都已有向量，等待中…")
         except Exception as e:
-            log(f"❌ 主循環錯誤: {e}")
+            log(f"❌ 主循環錯誤訊息: {e}")
         time.sleep(SLEEP_SEC)
 
     log("👋 向量服務結束。")

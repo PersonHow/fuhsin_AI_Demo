@@ -1,6 +1,8 @@
 PyMySQL
 SQLAlchemy
 pandas
+requests
+openai
 elasticsearch>=8,<9
 cryptography>=42.0.0
 
