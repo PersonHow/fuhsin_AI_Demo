@@ -11,6 +11,10 @@ export default function StatusIndicator({ status }) {
         <span>Elasticsearch: {getStatusText(status.elasticsearch)}</span>
       </div>
       <div className="status-item">
+        <span className="status-dot" style={{ background: getStatusColor(status.mysql) }}></span>
+        <span>MySQL: {getStatusText(status.mysql)}</span>
+      </div>
+      <div className="status-item">
         <span className="status-dot" style={{ background: getStatusColor(status.openai) }}></span>
         <span>OpenAI: {getStatusText(status.openai)}</span>
       </div>

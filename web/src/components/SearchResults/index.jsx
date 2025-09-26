@@ -7,7 +7,7 @@ export default function SearchResults({ results, searchMode, useGPT }) {
     const [expandedItems, setExpandedItems] = useState(new Set())
     const cn2tw = Converter({ from: 'cn', to: 'tw' });
     const toTW = (text) => (typeof text === 'string' ? cn2tw(text) : text)
-    
+
     // 欄位名稱對應表
     const fieldNameMapping = {
         // 產品主檔欄位
@@ -46,7 +46,7 @@ export default function SearchResults({ results, searchMode, useGPT }) {
         // 通用欄位
         'searchable_content': '內容',
         'all_content': '全文內容',
-        'content':"內容"
+        'content': "內容"
     }
 
 
@@ -62,45 +62,20 @@ export default function SearchResults({ results, searchMode, useGPT }) {
 
     // 根據不同表格類型建立標題列資訊
     const buildHeaderInfo = (source, index) => {
-        const data = source.metadata || {}
-        const headerParts = [`來源：${source.index}`]
-        
-        if (source.index === 'erp-complaints') {
-            // 客訴記錄
-            if (data.complaint_id) headerParts.push(`編號：${data.complaint_id}`)
-            if (data.complaint_date) headerParts.push(`發生日期：${data.complaint_date}`)
-            if (data.severity) headerParts.push(`緊急性：${data.severity}`)
-            if (data.complaint_type) headerParts.push(`類型：${data.complaint_type}`)
-            if (data.status) headerParts.push(`狀態：${data.status}`)
-            if (data.handler) headerParts.push(`接洽人：${data.handler}`)
-            
-            
-        } else if (source.index === 'erp-warehouse') {
-            // 倉庫資料
-            if (data.product_id) headerParts.push(`產品編號：${data.product_id}`)
-            if (data.product_name) headerParts.push(`產品：${data.product_name}`)
-            if (data.warehouse_location) headerParts.push(`位置：${data.warehouse_location}`)
-            if (data.quantity) headerParts.push(`數量：${data.quantity}`)
-            if (data.manager) headerParts.push(`管理人：${data.manager}`)
-            if (data.last_inventory_date) headerParts.push(`盤點日期：${data.last_inventory_date}`)
-            
-        } else if (source.index === 'erp-products') {
-            // 產品主檔
-            if (data.product_id) headerParts.push(`編號：${data.product_id}`)
-            if (data.product_name) headerParts.push(`名稱：${data.product_name}`)
-            if (data.product_model) headerParts.push(`型號：${data.product_model}`)
-            if (data.category) headerParts.push(`類別：${data.category}`)
-            if (data.status) headerParts.push(`狀態：${data.status}`)
-            if (data.supplier) headerParts.push(`供應商：${data.supplier}`)
-        }
-        
+        const data = source || {}
+        const headerParts = [`來源：${source.file_name}`]
+
+        if (data.doc_number) headerParts.push(`文件單號：${data.doc_number}`)
+        if (data.file_name) headerParts.push(`文件名稱：${data.file_name}`)
+        if (data.department) headerParts.push(`部門：${data.department}`)
+
         return headerParts
     }
 
     // 取得主要描述內容
     const getMainDescription = (source) => {
         const data = source || {}
-        
+
         if (source.index === 'erp-complaints') {
             return data.description || data.content || ''
         } else if (source.index === 'erp-warehouse') {
@@ -108,54 +83,31 @@ export default function SearchResults({ results, searchMode, useGPT }) {
         } else if (source.index === 'erp-products') {
             return data.content || ''
         }
-        
-        return data.ontent || ''
+
+        return data.keywords || ''
     }
 
     // 取得詳細資訊（展開時顯示）
     const getDetailedInfo = (source) => {
-        const data = source.metadata || {}
+        const data = source || {}
         const details = {}
-        
-        if (source.index === 'erp-complaints') {
-            // 客訴詳細資訊
-            if (data.customer_name || data.customer_company) {
-                details['客戶資訊'] = []
-                if (data.customer_name) details['客戶資訊'].push({ label: '客戶姓名', value: data.customer_name })
-                if (data.customer_company) details['客戶資訊'].push({ label: '客戶公司', value: data.customer_company })
-            }
-            
-            if (data.description) {
-                details['問題描述'] = [{ label: '', value: data.description }]
-            }
-            
-            if (data.resolution_date || data.status) {
-                details['處理進度'] = []
-                if (data.status) details['處理進度'].push({ label: '處理狀態', value: data.status })
-                if (data.resolution_date) details['處理進度'].push({ label: '解決日期', value: data.resolution_date })
-            }
-            
-        } else if (source.index === 'erp-warehouse') {
-            // 倉庫詳細資訊
-            details['庫存資訊'] = []
-            if (data.quantity) details['庫存資訊'].push({ label: '當前數量', value: data.quantity })
-            if (data.min_stock_level) details['庫存資訊'].push({ label: '最低庫存', value: data.min_stock_level })
-            if (data.special_notes) details['庫存資訊'].push({ label: '特別備註', value: data.special_notes })
-            
-        } else if (source.index === 'erp-products') {
-            // 產品詳細資訊
-            details['產品規格'] = []
-            if (data.product_model) details['產品規格'].push({ label: '型號', value: data.product_model })
-            if (data.price) details['產品規格'].push({ label: '價格', value: `$${data.price}` })
-            if (data.stock_qty) details['產品規格'].push({ label: '庫存', value: data.stock_qty })
-            if (data.manufacture_date) details['產品規格'].push({ label: '製造日期', value: data.manufacture_date })
-        }
-        
+
+        details['對應部門'] = []
+        details['文件資訊'] = []
+
+        details['對應部門'].push({ label: '部門名稱', value: data.department })
+        details['文件資訊'].push({ label: '文件單號', value: data.doc_number })
+        details['文件資訊'].push({ label: '文件類別', value: data.doc_type })
+        details['文件資訊'].push({ label: '文件名稱', value: data.title })
+        details['摘要描述'] = [{ label: '', value: data.summary }]
+
+
         return details
     }
 
     // 截斷文字顯示
     const truncateText = (text, maxLength = 10) => {
+        text = text.join(",")
         if (!text) return ''
         const cleanText = text.replace(/<[^>]*>/g, '') // 移除 HTML 標籤
         if (cleanText.length <= maxLength) return cleanText
@@ -167,14 +119,14 @@ export default function SearchResults({ results, searchMode, useGPT }) {
         return text.split(/(<em>.*?<\/em>)/g).map((part, index) => {
             if (part.startsWith('<em>') && part.endsWith('</em>')) {
                 const content = part.slice(4, -5)
-                
+
                 return <mark key={index}>{content}</mark>
             }
             console.log(part);
-            
+
             return part
         })
-        
+
     }
 
     return (
@@ -220,7 +172,7 @@ export default function SearchResults({ results, searchMode, useGPT }) {
                     const mainDescription = getMainDescription(source)
                     const detailedInfo = getDetailedInfo(source)
                     const isExpanded = expandedItems.has(index)
-                    
+
                     return (
                         <div key={index} className="result-item">
                             {/* 標題列 - 永遠顯示 */}
@@ -250,7 +202,7 @@ export default function SearchResults({ results, searchMode, useGPT }) {
                             {/* 簡短預覽 - 收起時顯示 */}
                             {!isExpanded && mainDescription && (
                                 <div className="result-preview">
-                                    <span className="preview-label">描述：</span>
+                                    <span className="preview-label">關鍵描述：</span>
                                     <span className="preview-text">
                                         {toTW(truncateText(mainDescription, 30))}
                                     </span>
@@ -284,13 +236,13 @@ export default function SearchResults({ results, searchMode, useGPT }) {
                                         <div className="highlight-section">
                                             {Object.entries(source.highlights).map(([field, values]) => (
                                                 (field == "searchable_content" ?
-                                                <div key={field} className="highlight-item">
-                                                    <h4>{fieldNameMapping[field] || field}:</h4>
-                                                    {values.map((value, vIdx) => (
-                                                        <p key={vIdx}>{toTW(renderHighlightedText(value))}</p>
-                                                    ))}
-                                                </div>
-                                                :"")
+                                                    <div key={field} className="highlight-item">
+                                                        <h4>{fieldNameMapping[field] || field}:</h4>
+                                                        {values.map((value, vIdx) => (
+                                                            <p key={vIdx}>{toTW(renderHighlightedText(value))}</p>
+                                                        ))}
+                                                    </div>
+                                                    : "")
                                             ))}
                                         </div>
                                     )}

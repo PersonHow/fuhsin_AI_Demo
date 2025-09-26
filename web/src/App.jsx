@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.scss'
+import { getHealth, getStats, postQuery, getDoc, pingRoot } from './api/apiClient'
 
 // 元件
 import Header from './components/Header'
@@ -25,6 +26,7 @@ export default function App() {
   const [error, setError] = useState(null)                         // 錯誤訊息
   const [systemStatus, setSystemStatus] = useState({               // 系統健康狀態
     elasticsearch: false,
+    mysql:false,
     openai: false,
     status: 'checking'
   })
@@ -35,52 +37,27 @@ export default function App() {
   const [lastSearchTime, setLastSearchTime] = useState(null)       // 最後搜尋時間
 
   // ─────────────────────── 系統健康檢查 ───────────────────────
-  /**
-   * 將 /health API 回傳結果正規化，確保舊版或新版後端格式都能處理。
-   */
-  const normalizeHealth = (data) => {
-    const hasES = typeof data?.elasticsearch === 'boolean'
-    const hasOpenAI = typeof data?.openai === 'boolean'
-    const status = data?.status || 'ok'
-    
-    return {
-      elasticsearch: hasES ? data.elasticsearch : status === 'healthy',
-      openai: hasOpenAI ? data.openai : status === 'healthy',
-      status: status === 'healthy' ? 'ok' : (status === 'degraded' ? 'warning' : 'error')
-    }
-  }
 
   // 呼叫後端 /health 取得系統狀態
   const checkSystemHealth = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      })
+      const status = await getHealth()
+      setSystemStatus(status)
+      console.log('系統健康檢查：', status);
       
-      if (response.ok) {
-        const data = await response.json()
-        setSystemStatus(normalizeHealth(data))
-        console.log('系統健康狀態:', data)
-      } else {
-        console.warn('健康檢查失敗:', response.status, response.statusText)
-        setSystemStatus({ elasticsearch: false, openai: false, status: 'error' })
-      }
     } catch (err) {
       console.error('健康檢查錯誤:', err)
-      setSystemStatus({ elasticsearch: false, openai: false, status: 'error' })
+      setSystemStatus({ elasticsearch: false, mysql: false, openai: false, status: 'error' })
     }
   }, [])
 
   // 取得系統統計資訊
   const getSystemStats = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/stats`)
-      if (response.ok) {
-        const stats = await response.json()
-        setSearchStats(stats)
-        console.log('系統統計資訊:', stats)
-      }
+      const response = await getStats()
+      setSearchStats(response)
+      console.log('系統統計資訊：', response);
+      
     } catch (err) {
       console.error('獲取統計資訊失敗:', err)
     }
@@ -138,88 +115,15 @@ export default function App() {
         mode: searchMode,  // 使用 'mode' 參數
         top_k: Number(topK),
         use_gpt: Boolean(useGPT),
-        index_pattern: 'erp-*',
-        temperature: 0.7,
-        convert_to_traditional: true
       }
 
       console.log('發送請求 payload:', JSON.stringify(payload, null, 2))
 
-      const response = await fetch(`${API_BASE_URL}/query`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-
-      // 詳細的響應處理
-      console.log('響應狀態:', response.status, response.statusText)
-      console.log('響應頭:', Object.fromEntries(response.headers.entries()))
-
-      if (!response.ok) {
-        let errorMsg = `搜尋失敗 (${response.status}): ${response.statusText}`
-        
-        try {
-          const errorData = await response.json()
-          console.error('錯誤詳情:', errorData)
-          
-          if (errorData?.detail) {
-            if (typeof errorData.detail === 'string') {
-              errorMsg = errorData.detail
-            } else {
-              errorMsg += `\n${JSON.stringify(errorData.detail, null, 2)}`
-            }
-          }
-        } catch (parseError) {
-          console.error('解析錯誤響應失敗:', parseError)
-          // 嘗試獲取原始文本
-          try {
-            const errorText = await response.text()
-            console.error('錯誤響應原始內容:', errorText)
-            if (errorText) {
-              errorMsg += `\n${errorText}`
-            }
-          } catch (textError) {
-            console.error('獲取錯誤文本失敗:', textError)
-          }
-        }
-        
-        throw new Error(errorMsg)
-      }
-
-      const data = await response.json()
+      const mapped = await postQuery(payload)
+      console.log("=== 搜索成功 ===");
+      console.log("對其後回傳：", mapped);
+      setSearchResults(mapped)
       
-      // 詳細的響應日誌
-      console.log('=== 搜尋成功 ===')
-      console.log('完整響應數據:', JSON.stringify(data, null, 2))
-      console.log('處理後的查詢:', data.processed_query)
-      console.log('搜尋模式:', data.search_mode)
-      console.log('結果數量:', data.sources?.length)
-      console.log('總命中數:', data.total_hits)
-      console.log('處理時間:', data.processing_time_ms, 'ms')
-      
-      if (data.answer) {
-        console.log('GPT 答案長度:', data.answer.length, '字符')
-      }
-      
-      if (data.sources) {
-        data.sources.forEach((source, index) => {
-          console.log(`結果 ${index + 1}:`, {
-            score: source.score,
-            index: source.index,
-            type: source.metadata?.type,
-            content_length: source.content?.length
-          })
-        })
-      }
-
-      // 計算客戶端總時間
-      const totalTime = Date.now() - searchStartTime
-      console.log('客戶端總時間:', totalTime, 'ms')
-
-      setSearchResults(data)
 
     } catch (err) {
       console.error('=== 搜尋錯誤 ===')
@@ -273,14 +177,6 @@ export default function App() {
     setError(null)
   }
 
-  // 快速搜尋建議
-  const quickSearchSuggestions = [
-    'P026', 'P001', 'P002',  // 產品代碼範例
-    '交流伺服馬達', '動力設備', '安川電機',  // 產品相關
-    '客訴', '退貨', '品質問題',  // 客訴相關
-    '技術文件', '申請', '核准'   // 文件相關
-  ]
-
   // ────────────────────────── Render ──────────────────────────
   return (
     <div className="app-container">
@@ -311,28 +207,6 @@ export default function App() {
             }}
           />
 
-          {/* 快速搜尋建議 */}
-          {!searchQuery && !searchResults && (
-            <div className="quick-search-suggestions">
-              <label>快速搜尋建議：</label>
-              <div className="suggestion-buttons">
-                {quickSearchSuggestions.map(suggestion => (
-                  <button
-                    key={suggestion}
-                    onClick={() => {
-                      setSearchQuery(suggestion)
-                      handleSearch(suggestion)
-                    }}
-                    className="suggestion-button"
-                    disabled={isLoading}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* 搜尋選項 */}
           <div className="search-options">
             <SearchModeSelector
@@ -343,7 +217,7 @@ export default function App() {
 
             <div className="option-group">
               {/* GPT 功能選項 */}
-              <label className="checkbox-label">
+              {/* <label className="checkbox-label">
                 <input
                   type="checkbox"
                   checked={useGPT}
@@ -351,7 +225,7 @@ export default function App() {
                   disabled={isLoading}
                 />
                 <span>使用 AI 生成答案</span>
-              </label>
+              </label> */}
 
               {/* 控制回傳結果數量 */}
               <div className="top-k-selector">
@@ -361,7 +235,6 @@ export default function App() {
                   onChange={(e) => setTopK(Number(e.target.value))}
                   disabled={isLoading}
                 >
-                  <option value={3}>3</option>
                   <option value={5}>5</option>
                   <option value={10}>10</option>
                   <option value={15}>15</option>
@@ -389,7 +262,7 @@ export default function App() {
               </button>
             </div>
             {/* 錯誤時的調試資訊 */}
-            {process.env.NODE_ENV === 'development' && (
+            {/* {process.env.NODE_ENV === 'development' && (
               <div className="debug-info">
                 <details>
                   <summary>調試資訊</summary>
@@ -408,7 +281,7 @@ export default function App() {
                   </pre>
                 </details>
               </div>
-            )}
+            )} */}
           </div>
         )}
 
@@ -476,7 +349,7 @@ export default function App() {
         )}
 
         {/* 系統狀態面板（開發模式） */}
-        {process.env.NODE_ENV === 'development' && (
+        {/* {process.env.NODE_ENV === 'development' && (
           <div className="debug-panel">
             <details>
               <summary>系統調試資訊</summary>
@@ -497,7 +370,7 @@ export default function App() {
               </div>
             </details>
           </div>
-        )}
+        )} */}
       </main>
     </div>
   )

@@ -135,6 +135,7 @@ services:
     container_name: rag-api
     depends_on:
       - elasticsearch
+      - mysql
       - vector-generator
     environment:
       - ES_URL=http://elasticsearch:9200
@@ -148,6 +149,7 @@ services:
       - "8010:8010"  # FastAPI 服務
     volumes:
       - ./scripts/rag-api:/scripts
+      - ./logs:/logs:rw
     healthcheck:
       test: [
         "CMD",

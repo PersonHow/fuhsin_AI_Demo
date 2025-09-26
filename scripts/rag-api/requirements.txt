@@ -4,3 +4,5 @@ fastapi
 uvicorn[standard]
 numpy
 opencc-python-reimplemented
+pydantic
+pymysql
