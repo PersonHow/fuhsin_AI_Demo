@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 安裝 Python 套件
+RUN pip install --no-cache-dir \
+    openai \
+    requests \
+    numpy
+
+# 建立必要目錄
+RUN mkdir -p /logs
+
+CMD ["python", "vector_service.py"]

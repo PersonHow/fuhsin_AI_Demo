@@ -130,8 +130,11 @@ start() {
     
     # 可選擇性啟動服務
     if [ "$1" == "--minimal" ]; then
-        echo -e "${BLUE}啟動最小服務集（MySQL + ES + 同步）${NC}"
-        docker-compose up -d mysql elasticsearch db-direct-sync mysql-auto-importer
+        echo -e "${BLUE}啟動最小服務集（主要程式啟動）${NC}"
+        docker-compose up -d mysql elasticsearch pdf-file-server rag-api web-ui-dev
+    elif ["$1" == "--importData"]
+        echo -e "${BLUE}啟動匯入檔案服務"
+        docker-compose up -d mysql elasticsearch pdf-processor pdf-parser vector-generator
     else
         docker-compose up -d
         docker-compose --profile dev up -d

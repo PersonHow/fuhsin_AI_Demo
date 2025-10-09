@@ -6,3 +6,4 @@ pytesseract
 pdf2image
 Pillow
 python-dateutil
+python-magic

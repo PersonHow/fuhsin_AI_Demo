@@ -1,43 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-優化版資料庫同步腳本
-專注於 MySQL 到 Elasticsearch 的資料同步
-同步資料表：
-- product_master_a: 產品主檔
-- product_warehouse_b: 倉儲資料
-- customer_complaint_c: 客訴記錄
-- structured_documents: 結構化文件（技術文件、品質報告等）
-
-向量生成由獨立的 vector_service.py 處理
+資料庫同步腳本 - 多表同步版
+同步 PDF 相關表到 Elasticsearch
 """
 
-import os, sys, time, json, pymysql, requests
-import signal, hashlib, threading, logging, math
-from uuid import UUID
-from pathlib import Path
-from enum import Enum
-from decimal import Decimal
+import os, sys, time, json, pymysql, requests, signal
 from datetime import datetime, date
+from decimal import Decimal
 from typing import Dict, List, Any, Optional
 from pymysql.cursors import DictCursor
 from requests.auth import HTTPBasicAuth
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import logging
 
 # ========== 環境變數配置 ==========
-# Elasticsearch 配置
 ES_URL = os.environ.get('ES_URL', 'http://localhost:9200')
 ES_USER = os.environ.get('ES_USER', 'elastic')
 ES_PASS = os.environ.get('ES_PASS', 'admin@12345')
 
-# MySQL 配置
 MYSQL_HOST = os.environ.get('MYSQL_HOST', 'mysql')
 MYSQL_PORT = int(os.environ.get('MYSQL_PORT', '3306'))
 MYSQL_USER = os.environ.get('MYSQL_USER', 'root')
 MYSQL_PASS = os.environ.get('MYSQL_PASS', 'root')
 MYSQL_DB = os.environ.get('MYSQL_DB', 'fuhsin_erp_demo')
 
-# 同步配置
 BATCH_SIZE = int(os.environ.get('DB_BATCH_SIZE', '1000'))
 PAGE_SIZE = int(os.environ.get('DB_PAGE_SIZE', '5000'))
 PARALLEL_THREADS = int(os.environ.get('PARALLEL_THREADS', '4'))
@@ -50,8 +37,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 全域控制變數
 should_stop = False
+
+def to_bool(v):
+    if v is None: return None
+    if isinstance(v, bool): return v
+    if isinstance(v, (int, float)): return int(v) != 0
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if s in ('1','true','yes','y','on'): return True
+        if s in ('0','false','no','n','off',''): return False
+    return None
 
 # ========== Elasticsearch 客戶端 ==========
 class ElasticsearchClient:
@@ -120,192 +116,165 @@ class ElasticsearchClient:
                 }
             },
             "mappings": {
-                "properties": {}
+                "properties": {
+                    "doc_id": {"type": "keyword"},
+                    "created_at": {"type": "date"},
+                    "last_modified": {"type": "date"}
+                }
             }
         }
         
         # 根據類型添加特定欄位
-        if doc_type == 'product':
+        if doc_type == 'ecn_notice':
             base_mapping["mappings"]["properties"].update({
-                "product_id": {"type": "keyword"},
+                "notice_number": {"type": "keyword"},
+                "application_number": {"type": "keyword"},
+                "product_code": {"type": "keyword"},
                 "product_name": {
                     "type": "text",
                     "analyzer": "chinese_analyzer",
                     "fields": {"keyword": {"type": "keyword"}}
                 },
-                "specification": {"type": "text", "analyzer": "chinese_analyzer"},
-                "category": {"type": "keyword"},
-                "brand": {"type": "keyword"},
-                "unit": {"type": "keyword"},
-                "price": {"type": "float"},
-                "stock_quantity": {"type": "integer"},
-                "warehouse_location": {"type": "keyword"},
-                "description": {"type": "text", "analyzer": "chinese_analyzer"},
-                "status": {"type": "keyword"},
-                "created_date": {"type": "date"},
-                "last_modified": {"type": "date"}
+                "change_description": {"type": "text", "analyzer": "chinese_analyzer"},
+                "before_change": {"type": "text", "analyzer": "chinese_analyzer"},
+                "after_change": {"type": "text", "analyzer": "chinese_analyzer"},
+                "inventory_handling": {"type": "text", "analyzer": "chinese_analyzer"},
+                "applicant": {"type": "keyword"},
+                "ecn_date": {"type": "date"}
             })
+        
+        elif doc_type == 'ecn_application':
+            base_mapping["mappings"]["properties"].update({
+                "application_number": {"type": "keyword"},
+                "product_code": {"type": "keyword"},
+                "product_name": {
+                    "type": "text",
+                    "analyzer": "chinese_analyzer",
+                    "fields": {"keyword": {"type": "keyword"}}
+                },
+                "reason": {"type": "text", "analyzer": "chinese_analyzer"},
+                "change_items": {"type": "text", "analyzer": "chinese_analyzer"},
+                "change_before": {"type": "text", "analyzer": "chinese_analyzer"},
+                "change_after": {"type": "text", "analyzer": "chinese_analyzer"},
+                "meeting_suggestions": {"type": "text", "analyzer": "chinese_analyzer"},
+                "review_notes": {"type": "text", "analyzer": "chinese_analyzer"},
+                "ecn_date": {"type": "date"}
+            })
+        
         elif doc_type == 'complaint':
             base_mapping["mappings"]["properties"].update({
-                "complaint_id": {"type": "keyword"},
+                "complaint_number": {"type": "keyword"},
+                "complaint_type": {"type": "keyword"},
+                "customer_code": {"type": "keyword"},
                 "customer_name": {
                     "type": "text",
                     "analyzer": "chinese_analyzer",
                     "fields": {"keyword": {"type": "keyword"}}
                 },
-                "customer_contact": {"type": "keyword"},
-                "product_name": {"type": "text", "analyzer": "chinese_analyzer"},
-                "issue_description": {"type": "text", "analyzer": "chinese_analyzer"},
-                "issue_date": {"type": "date"},
-                "handler": {"type": "keyword"},
-                "status": {"type": "keyword"},
-                "solution": {"type": "text", "analyzer": "chinese_analyzer"},
-                "resolved_date": {"type": "date"},
-                "last_modified": {"type": "date"}
+                "product_code": {"type": "keyword"},
+                "product_name": {
+                    "type": "text",
+                    "analyzer": "chinese_analyzer",
+                    "fields": {"keyword": {"type": "keyword"}}
+                },
+                "complaint_description": {"type": "text", "analyzer": "chinese_analyzer"},
+                "complaint_analysis": {"type": "text", "analyzer": "chinese_analyzer"},
+                "responsible_sales": {"type": "keyword"}
             })
+        
+        elif doc_type == 'fmea':
+            base_mapping["mappings"]["properties"].update({
+                "case_number": {"type": "keyword"},
+                "case_name": {
+                    "type": "text",
+                    "analyzer": "chinese_analyzer",
+                    "fields": {"keyword": {"type": "keyword"}}
+                },
+                "analysis_type": {"type": "keyword"},
+                "product_type": {"type": "keyword"},
+                "responsible_person": {"type": "keyword"},
+                "analyst": {"type": "text", "analyzer": "chinese_analyzer"},
+                "analysis_item": {"type": "text", "analyzer": "chinese_analyzer"},
+                "failure_mode": {"type": "text", "analyzer": "chinese_analyzer"},
+                "failure_effect": {"type": "text", "analyzer": "chinese_analyzer"},
+                "failure_cause": {"type": "text", "analyzer": "chinese_analyzer"},
+                "severity_s": {"type": "integer"},
+                "occurrence_o": {"type": "integer"},
+                "detection_d": {"type": "integer"},
+                "rpn": {"type": "integer"},
+                "current_control": {"type": "text", "analyzer": "chinese_analyzer"},
+                "corrective_action": {"type": "text", "analyzer": "chinese_analyzer"},
+                "improvement_result": {"type": "text", "analyzer": "chinese_analyzer"},
+                "is_customer_complaint": {"type": "boolean"},
+                "department_head": {"type": "keyword"},
+                "section_head": {"type": "keyword"},
+                "form_date": {"type": "date"},
+                "revision_date": {"type": "date"}
+            })
+        
         elif doc_type == 'document':
             base_mapping["mappings"]["properties"].update({
                 "original_doc_id": {"type": "keyword"},
                 "doc_type": {"type": "keyword"},
                 "doc_number": {"type": "keyword"},
                 "doc_date": {"type": "date"},
-                "file_name": {
+                "file_name": {"type": "keyword"},
+                "file_url": {"type": "keyword"},
+                "product_codes": {"type": "keyword"},
+                "product_names": {
                     "type": "text",
                     "analyzer": "chinese_analyzer",
                     "fields": {"keyword": {"type": "keyword"}}
                 },
-                "file_url": {"type": "keyword"},
-                "file_path": {"type": "keyword"},
-                "file_size": {"type": "long"},
-                "file_hash": {"type": "keyword"},
-                "product_category": {"type": "keyword"},
-                "product_codes": {"type": "keyword"},
-                "product_names": {
-                    "type": "text",
-                    "analyzer": "chinese_analyzer"
-                },
                 "applicant": {"type": "keyword"},
                 "department": {"type": "keyword"},
-                "responsible_units": {"type": "keyword"},
                 "summary": {"type": "text", "analyzer": "chinese_analyzer"},
                 "keywords": {"type": "keyword"},
                 "status": {"type": "keyword"},
-                "priority": {"type": "keyword"},
-                "parsed_at": {"type": "date"},
-                "last_modified": {"type": "date"}
+                "priority": {"type": "keyword"}
             })
         
         return base_mapping
     
     def bulk_index(self, index_name: str, documents: List[Dict]) -> int:
-        """批次索引文件"""
+        """ 批次索引文檔 """
         if not documents:
             return 0
         
-        EXCLUDE_FIELDS = {'original_extracted_content'}
-
-        # 準備批次操作
-        def sanitize_doc(doc):
-            def _norm(v):
-                # 基本可序列化型別（保持原樣）
-                if v is None or isinstance(v, (str, int, float, bool)):
-                    # 可選：避免 NaN/Infinity 進 ES
-                    if isinstance(v, float) and not math.isfinite(v):
-                        return None
-                    return v
-
-                # bytes 類：盡量用 utf-8，失敗則轉 hex
-                if isinstance(v, (bytes, bytearray, memoryview)):
-                    try:
-                        return bytes(v).decode("utf-8")
-                    except Exception:
-                        return bytes(v).hex()
-
-                # Decimal → float（確保 ES 走 numeric 映射）
-                if isinstance(v, Decimal):
-                    f = float(v)
-                    return f if math.isfinite(f) else None
-
-                # 日期時間 → ISO8601
-                if isinstance(v, (datetime, date)):
-                    return v.isoformat()
-
-                # 其他常見可轉字串型別
-                if isinstance(v, UUID):
-                    return str(v)
-                if isinstance(v, Path):
-                    return str(v)
-                if isinstance(v, Enum):
-                    return v.value
-
-                # 容器：遞迴處理
-                if isinstance(v, dict):
-                    # key 也做一次正規化並確保是字串
-                    return {str(_norm(k)): _norm(val) for k, val in v.items() if k not in EXCLUDE_FIELDS}
-                if isinstance(v, (list, tuple, set)):
-                    return [_norm(x) for x in v]
-
-                # 自訂物件：嘗試吃 __dict__，最後退回 str
-                if hasattr(v, "__dict__"):
-                    return _norm(vars(v))
-
-                return str(v)  # 最後的保險
-            # 入口通常是 dict，但讓它能接任何型別
-            return _norm(doc)
-        
-        def ensure_doc_id(doc):
-            # 按優先順序檢查可用的 ID 欄位
-            for key in ("id", "product_id", "complaint_id", "original_doc_id", "doc_number"):
-                if key in doc and doc[key] not in (None, ""):
-                    return str(doc[key])
-            # fallback：使用文檔內容的 hash
-            blob = json.dumps(doc, sort_keys=True, default=str).encode("utf-8")
-            return hashlib.md5(blob).hexdigest()
-        
-        actions = []
-        for doc in documents:
-            doc = sanitize_doc(doc)
-            doc_id = ensure_doc_id(doc)
-            actions.append({
-                "_index": index_name,
-                "_id": doc_id,
-                "_source": doc
-            })
-        
-        # 執行批次索引
-        bulk_body = []
-        for action in actions:
-            bulk_body.append(json.dumps({"index": {
-                "_index": action["_index"],
-                "_id": action["_id"]
-            }}))
-            bulk_body.append(json.dumps(action["_source"], ensure_ascii=False))
-        
-        bulk_data = '\n'.join(bulk_body) + '\n'
-        
         try:
+            # 建立 bulk 請求
+            lines = []
+            for doc in documents:
+                doc_id = doc.get('id') or doc.get('doc_id')
+                # 索引命令
+                lines.append(json.dumps({"index": {"_index": index_name, "_id": doc_id}}))
+                # 文檔內容
+                lines.append(json.dumps(doc, ensure_ascii=False, default=str))
+            
+            bulk_data = '\n'.join(lines) + '\n'
+            
+            # 發送 bulk 請求
             response = self.session.post(
                 f"{ES_URL}/_bulk",
                 data=bulk_data,
                 headers={'Content-Type': 'application/x-ndjson'}
             )
             
-            if response.status_code in [200, 201]:
+            if response.status_code == 200:
                 result = response.json()
-                if not result.get('errors'):
-                    indexed = len([item for item in result.get('items', []) 
-                                 if item.get('index', {}).get('status') in [200, 201]])
-                    return indexed
-                else:
-                    # 計算成功的數量
-                    indexed = len([item for item in result.get('items', []) 
-                                if item.get('index', {}).get('status') in [200, 201]])
-                    failed = len(result.get('items', [])) - indexed
-                    if failed > 0:
-                        logger.warning(f"⚠️ 部分文檔索引失敗: {failed} 個")
-                    return indexed
+                if result.get('errors'):
+                    # ⭐ 修改這裡：輸出詳細錯誤
+                    error_items = [item for item in result['items'] if 'error' in item.get('index', {})]
+                    for item in error_items[:5]:  # 只顯示前3個錯誤
+                        error_detail = item.get('index', {}).get('error', {})
+                        logger.error(f"索引錯誤詳情: {json.dumps(error_detail, ensure_ascii=False, indent=2)}")
+                    
+                    error_count = len(error_items)
+                    logger.warning(f"批次索引部分失敗: {error_count}/{len(documents)} 錯誤")
+                    return len(documents) - error_count
+                return len(documents)
             else:
-                logger.error(f"❌ 批次索引失敗: {response.text[:200]}")
+                logger.error(f"批次索引失敗: {response.status_code} - {response.text[:500]}")
                 return 0
                 
         except Exception as e:
@@ -321,18 +290,6 @@ class ElasticsearchClient:
             return 0
         except Exception:
             return 0
-    
-    def delete_index(self, index_name: str):
-        """刪除索引"""
-        try:
-            response = self.session.delete(f"{ES_URL}/{index_name}")
-            if response.status_code == 200:
-                logger.info(f"✅ 成功刪除索引: {index_name}")
-                return True
-            return False
-        except Exception as e:
-            logger.error(f"❌ 刪除索引時發生錯誤: {e}")
-            return False
 
 # ========== MySQL 同步器 ==========
 class MySQLSyncer:
@@ -445,21 +402,23 @@ class MySQLSyncer:
                             row[key] = float(value)
                         elif isinstance(value, (bytes, bytearray, memoryview)):
                             row[key] = bytes(value).decode("utf-8", errors="ignore")
-
                     
-                    # 處理 structured_documents 的 JSON 欄位
+                    # 處理 JSON 欄位 (structured_documents)
                     if table_name == 'structured_documents':
-                        json_fields = ['product_codes', 'product_names', 'responsible_units', 'keywords']
+                        json_fields = ['product_codes', 'product_names', 'related_doc_numbers', 
+                                        'responsible_units', 'keywords']
                         for field in json_fields:
                             if field in row and row[field]:
                                 try:
                                     if isinstance(row[field], str):
                                         row[field] = json.loads(row[field])
-                                except Exception as e:
-                                    logger.warning(f"解析 JSON 欄位 {field} 失敗: {e}")
+                                except Exception:
                                     row[field] = []
-                        row.pop("original_extracted_content", None)
                     
+                    if table_name == 'fmea_records':
+                        if 'is_customer_complaint' in row:
+                            row['is_customer_complaint'] = to_bool(row['is_customer_complaint'])
+
                     batch.append(row)
                     
                     if len(batch) >= BATCH_SIZE:
@@ -481,11 +440,14 @@ class MySQLSyncer:
     
     def sync_all(self):
         """同步所有配置的資料表"""
+        # 方案A：每種表單同步到不同索引
         tables = [
-            ('product_master_a', 'erp-products', 'product'),
-            ('product_warehouse_b', 'erp-warehouse', 'product'),
-            ('customer_complaint_c', 'erp-complaints', 'complaint'),
-            ('structured_documents', 'erp-documents', 'document')
+            # PDF 文件相關表
+            ('ecn_notices', 'erp-ecn-notices', 'ecn_notice'),
+            ('ecn_applications', 'erp-ecn-applications', 'ecn_application'),
+            ('complaint_records', 'erp-complaint-records', 'complaint'),
+            ('fmea_records', 'erp-fmea', 'fmea'),
+            ('structured_documents', 'erp-structure', 'document'),
         ]
         
         for table_name, index_name, doc_type in tables:
@@ -522,11 +484,11 @@ def main():
     logger.info(f"頁面大小: {PAGE_SIZE}")
     logger.info(f"並行執行緒: {PARALLEL_THREADS}")
     logger.info("同步資料表:")
-    logger.info("  - product_master_a → erp-products")
-    logger.info("  - product_warehouse_b → erp-warehouse")
-    logger.info("  - customer_complaint_c → erp-complaints")
+    logger.info("  - ecn_notices → erp-ecn-notices")
+    logger.info("  - ecn_applications → erp-ecn-applications")
+    logger.info("  - complaint_records → erp-complaint-records")
+    logger.info("  - fmea_records → erp-fmea")
     logger.info("  - structured_documents → erp-documents")
-    logger.info("向量生成由 vector_service.py 獨立處理")
     logger.info("=" * 60)
     
     # 建立客戶端

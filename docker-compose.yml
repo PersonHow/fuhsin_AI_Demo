@@ -97,10 +97,15 @@ services:
 
 # 向量檢索服務
   vector-generator:
-    image: python:3.11-slim
+    build:
+      context: ./scripts/vector
+      dockerfile: Dockerfile.vector
     container_name: vector-generator
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
+      db-sync:
+        condition: service_started
     environment:
       - ES_URL=http://elasticsearch:9200
       - ES_USER=${ES_USER}
@@ -115,14 +120,8 @@ services:
       - REQUESTS_TIMEOUT=30
       - MAX_RETRIES=5
     volumes:
-      - ./scripts:/scripts:ro
+      - ./scripts/vector:/app:ro
       - ./logs/vector:/logs:rw
-    working_dir: /scripts
-    command: >
-      bash -c "
-        pip install --no-cache-dir openai requests numpy &&
-        python vector_service.py 2>&1 | tee -a /logs/vector.log
-      "
     restart: unless-stopped
     networks:
       - elastic
@@ -258,11 +257,12 @@ services:
       - MYSQL_DATABASE=fuhsin_erp_demo
     
     # PDF 處理設定
-      - PDF_WATCH_DIR=/mnt/pdf/incoming     # 監控目錄
+      - PDF_WATCH_DIR=/mnt/pdf/incoming         # 監控目錄
       - SCAN_INTERVAL=${PDF_SCAN_INTERVAL:-20}  # 掃描間隔（秒）
       - PROCESS_BATCH_SIZE=${PDF_BATCH_SIZE:-3} # 每批處理檔案數
-      - ENABLE_OCR=${ENABLE_OCR:-true}         # 是否啟用 OCR
+      - ENABLE_OCR=${ENABLE_OCR:-true}          # 是否啟用 OCR
       - OCR_LANG=chi_tra+eng                    # OCR 語言（繁體中文+英文）
+      - OCR_DPI=${OCR_DPI:-300}                # 解析度 300
     
     # 日誌設定
       - LOG_LEVEL=INFO
@@ -343,8 +343,8 @@ services:
     ports:
       - 8088:80
     volumes:
-      - ./pdf/files:/user/share/nginx/html:ro
-      - ./pdf/file-server/nginx.conf:/etx/nginx/conf.d/default.conf:ro
+      - ./pdf/done:/usr/share/nginx/html:ro
+      - ./pdf/file-server/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - elastic
 
