@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.scss'
-import { getHealth, getStats, postQuery, getDoc, pingRoot } from './api/apiClient'
+import { getHealth, getStats, postQuery, getDoc } from './api/apiClient'
 
 // 元件
 import Header from './components/Header'
@@ -11,12 +11,8 @@ import SearchModeSelector from './components/SearchModeSelector'
 import LoadingSpinner from './components/LoadingSpinner'
 
 /**
- * API 基底網址
- * - 生產環境 (Docker) ：VITE_API_URL 設為 "/api" （由後端代理）
- * - 開發環境 (Vite) ：可在 .env 設定 VITE_API_URL，或透過 dev server proxy 代理
+ * 主應用程式組件 - 多索引 RAG 系統
  */
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
-
 export default function App() {
   // ───────────────────────── 狀態管理 ─────────────────────────
   const [searchQuery, setSearchQuery] = useState('')               // 使用者輸入的查詢字串
@@ -26,15 +22,17 @@ export default function App() {
   const [error, setError] = useState(null)                         // 錯誤訊息
   const [systemStatus, setSystemStatus] = useState({               // 系統健康狀態
     elasticsearch: false,
-    mysql:false,
+    mysql: false,
     openai: false,
-    status: 'checking'
+    status: 'checking',
+    indices: []
   })
   const [searchHistory, setSearchHistory] = useState([])           // 搜尋歷史紀錄
   const [useGPT, setUseGPT] = useState(true)                       // 是否使用 GPT 生成答案
-  const [topK, setTopK] = useState(5)                              // 回傳結果數量
+  const [topK, setTopK] = useState(10)                             // 回傳結果數量
   const [searchStats, setSearchStats] = useState(null)             // 搜尋統計資訊
   const [lastSearchTime, setLastSearchTime] = useState(null)       // 最後搜尋時間
+  const [docTypeFilter, setDocTypeFilter] = useState([])          // 文件類型過濾
 
   // ─────────────────────── 系統健康檢查 ───────────────────────
 
@@ -43,11 +41,21 @@ export default function App() {
     try {
       const status = await getHealth()
       setSystemStatus(status)
-      console.log('系統健康檢查：', status);
+      console.log('系統健康檢查：', status)
       
+      // 如果系統不健康，顯示警告
+      if (status.status === 'error' || status.status === 'degraded') {
+        console.warn('系統狀態異常：', status)
+      }
     } catch (err) {
       console.error('健康檢查錯誤:', err)
-      setSystemStatus({ elasticsearch: false, mysql: false, openai: false, status: 'error' })
+      setSystemStatus({ 
+        elasticsearch: false, 
+        mysql: false, 
+        openai: false, 
+        status: 'error',
+        indices: []
+      })
     }
   }, [])
 
@@ -56,8 +64,7 @@ export default function App() {
     try {
       const response = await getStats()
       setSearchStats(response)
-      console.log('系統統計資訊：', response);
-      
+      console.log('系統統計資訊：', response)
     } catch (err) {
       console.error('獲取統計資訊失敗:', err)
     }
@@ -79,7 +86,7 @@ export default function App() {
 
   // ──────────────────────── 搜尋處理 ─────────────────────────
   /**
-   * 執行搜尋請求 - 改進版本，包含更詳細的錯誤處理和日誌
+   * 執行搜尋請求 - 改進版本，支援多索引
    */
   const handleSearch = async (query = searchQuery) => {
     if (!query.trim()) {
@@ -92,6 +99,7 @@ export default function App() {
     console.log('搜尋模式:', searchMode)
     console.log('結果數量:', topK)
     console.log('使用 GPT:', useGPT)
+    console.log('文件類型過濾:', docTypeFilter)
 
     setIsLoading(true)
     setError(null)
@@ -106,24 +114,52 @@ export default function App() {
 
     // 記錄搜尋開始時間
     const searchStartTime = Date.now()
-    setLastSearchTime(new Date().toLocaleString())
+    setLastSearchTime(new Date().toLocaleString('zh-TW', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }))
 
     try {
-      // 構建請求 payload - 確保欄位名稱與後端 API 一致
+      // 構建請求 payload - 對應後端 SearchRequest
       const payload = {
         query: query.trim(),
-        mode: searchMode,  // 使用 'mode' 參數
+        mode: searchMode,
         top_k: Number(topK),
         use_gpt: Boolean(useGPT),
+        doc_type_filter: docTypeFilter.length > 0 ? docTypeFilter : null
       }
 
       console.log('發送請求 payload:', JSON.stringify(payload, null, 2))
 
-      const mapped = await postQuery(payload)
-      console.log("=== 搜索成功 ===");
-      console.log("對其後回傳：", mapped);
-      setSearchResults(mapped)
+      const result = await postQuery(payload)
       
+      console.log("=== 搜尋成功 ===")
+      console.log("回傳結果：", result)
+      
+      // 驗證結果
+      if (!result.success) {
+        throw new Error('搜尋請求未成功')
+      }
+      
+      setSearchResults(result)
+      
+      // 顯示搜尋結果摘要
+      const resultSummary = {
+        總結果數: result.total_hits,
+        返回數量: result.sources?.length || 0,
+        處理時間: `${result.processing_time_ms}ms`,
+        搜尋模式: result.search_mode,
+        MySQL輔助: result.metadata?.mysql_hits || 0,
+        識別產品: result.metadata?.product_ids_found || [],
+        使用關鍵字: result.metadata?.keywords_used || [],
+        搜尋索引: result.metadata?.indices_searched || '',
+        索引分布: result.metadata?.index_distribution || {}
+      }
+      console.log('搜尋結果摘要:', resultSummary)
 
     } catch (err) {
       console.error('=== 搜尋錯誤 ===')
@@ -135,13 +171,13 @@ export default function App() {
       let userFriendlyError = '搜尋時發生錯誤'
       
       if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-        userFriendlyError = '無法連接到搜尋服務，請檢查網路連接'
+        userFriendlyError = '無法連接到搜尋服務，請檢查網路連接或確認服務是否運行'
       } else if (err.message.includes('timeout')) {
-        userFriendlyError = '搜尋請求超時，請稍後再試'
+        userFriendlyError = '搜尋請求超時，請稍後再試或減少結果數量'
       } else if (err.message.includes('503')) {
         userFriendlyError = '搜尋服務暫時不可用，請稍後再試'
       } else if (err.message.includes('500')) {
-        userFriendlyError = '服務器內部錯誤，請稍後再試'
+        userFriendlyError = '服務器內部錯誤，請檢查後端日誌'
       } else if (err.message) {
         userFriendlyError = err.message
       }
@@ -177,11 +213,17 @@ export default function App() {
     setError(null)
   }
 
+  // 處理文件類型過濾變更
+  const handleDocTypeFilterChange = (types) => {
+    setDocTypeFilter(types)
+    console.log('文件類型過濾已更新:', types)
+  }
+
   // ────────────────────────── Render ──────────────────────────
   return (
     <div className="app-container">
       {/* 頁面標題 */}
-      <Header title="Fushin AI 智能檢索系統" />
+      <Header title="Fushin AI 智能檢索系統" subtitle="多索引技術文件搜尋" />
 
       {/* 系統健康狀態指示器 */}
       <StatusIndicator 
@@ -199,7 +241,7 @@ export default function App() {
             onSearch={handleSearch}
             onClear={handleClear}
             isLoading={isLoading}
-            placeholder="輸入關鍵字進行智能搜尋..."
+            placeholder="輸入關鍵字、產品編號或問題描述進行智能搜尋..."
             searchHistory={searchHistory}
             onHistorySelect={(q) => {
               setSearchQuery(q)
@@ -209,6 +251,7 @@ export default function App() {
 
           {/* 搜尋選項 */}
           <div className="search-options">
+            {/* 搜尋模式選擇 */}
             <SearchModeSelector
               mode={searchMode}
               onChange={setSearchMode}
@@ -216,16 +259,6 @@ export default function App() {
             />
 
             <div className="option-group">
-              {/* GPT 功能選項 */}
-              {/* <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={useGPT}
-                  onChange={(e) => setUseGPT(e.target.checked)}
-                  disabled={isLoading}
-                />
-                <span>使用 AI 生成答案</span>
-              </label> */}
 
               {/* 控制回傳結果數量 */}
               <div className="top-k-selector">
@@ -239,10 +272,12 @@ export default function App() {
                   <option value={10}>10</option>
                   <option value={15}>15</option>
                   <option value={20}>20</option>
+                  <option value={30}>30</option>
                 </select>
               </div>
             </div>
           </div>
+
         </div>
 
         {/* 錯誤訊息 */}
@@ -261,34 +296,17 @@ export default function App() {
                 ✕
               </button>
             </div>
-            {/* 錯誤時的調試資訊 */}
-            {/* {process.env.NODE_ENV === 'development' && (
-              <div className="debug-info">
-                <details>
-                  <summary>調試資訊</summary>
-                  <pre>
-                    <code>
-                      {JSON.stringify({
-                        timestamp: new Date().toISOString(),
-                        searchQuery,
-                        searchMode,
-                        topK,
-                        useGPT,
-                        systemStatus,
-                        apiUrl: API_BASE_URL
-                      }, null, 2)}
-                    </code>
-                  </pre>
-                </details>
-              </div>
-            )} */}
           </div>
         )}
 
         {/* 載入中提示 */}
         {isLoading && (
           <LoadingSpinner 
-            message={`正在執行${searchMode === 'hybrid' ? '混合' : searchMode === 'vector' ? '語義' : '關鍵字'}搜尋...`} 
+            message={`正在執行${
+              searchMode === 'hybrid' ? '混合' : 
+              searchMode === 'vector' ? '語義' : 
+              '關鍵字'
+            }搜尋...`} 
           />
         )}
 
@@ -301,33 +319,82 @@ export default function App() {
           />
         )}
         
-        {/* 結果統計資訊 */}
+        {/* 結果統計資訊 - 使用後端的格式 */}
         {searchResults && !isLoading && (
           <div className="search-stats">
-            <div className="stats-row">
+            {/* <div className="stats-row">
               <div className="stats-item">
-                <strong>搜尋模式:</strong> {searchResults.search_mode}
+                <strong>搜尋模式:</strong> 
+                <span className="stats-value">{searchResults.search_mode}</span>
               </div>
               <div className="stats-item">
-                <strong>返回結果:</strong> {searchResults.sources?.length || 0} 筆
+                <strong>返回結果:</strong> 
+                <span className="stats-value">{searchResults.sources?.length || 0} 筆</span>
               </div>
               <div className="stats-item">
-                <strong>總命中數:</strong> {searchResults.total_hits || 0} 筆
+                <strong>總命中數:</strong> 
+                <span className="stats-value">{searchResults.total_hits || 0} 筆</span>
               </div>
               <div className="stats-item">
-                <strong>處理時間:</strong> {searchResults.processing_time_ms || 0} ms
+                <strong>處理時間:</strong> 
+                <span className="stats-value">{searchResults.processing_time_ms || 0} ms</span>
               </div>
-            </div>
+            </div> */}
             
-            {/* 查詢處理資訊 */}
-            {searchResults.processed_query !== searchResults.query && (
-              <div className="query-processing-info">
-                <small>
-                  <strong>原始查詢:</strong> {searchResults.query} → 
-                  <strong>處理後:</strong> {searchResults.processed_query}
-                </small>
+            {/* MySQL 輔助查詢資訊 */}
+            {/* {searchResults.metadata?.mysql_hits > 0 && (
+              <div className="stats-row">
+                <div className="stats-item">
+                  <strong>MySQL 輔助:</strong> 
+                  <span className="stats-value">{searchResults.metadata.mysql_hits} 筆</span>
+                </div>
+                {searchResults.metadata.product_ids_found?.length > 0 && (
+                  <div className="stats-item">
+                    <strong>識別產品:</strong> 
+                    <span className="stats-value">
+                      {searchResults.metadata.product_ids_found.join(', ')}
+                    </span>
+                  </div>
+                )}
+                {searchResults.metadata.keywords_used?.length > 0 && (
+                  <div className="stats-item">
+                    <strong>使用關鍵字:</strong> 
+                    <span className="stats-value">
+                      {searchResults.metadata.keywords_used.join(', ')}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
+            )} */}
+            
+            {/* 索引分布資訊 */}
+            {/* {searchResults.metadata?.index_distribution && 
+             Object.keys(searchResults.metadata.index_distribution).length > 0 && (
+              <div className="stats-row">
+                <div className="stats-item">
+                  <strong>索引分布:</strong>
+                  <div className="index-distribution">
+                    {Object.entries(searchResults.metadata.index_distribution).map(([index, count]) => (
+                      <span key={index} className="distribution-tag">
+                        {index.replace('erp-', '')}: {count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )} */}
+
+            {/* 搜尋索引資訊 */}
+            {/* {searchResults.metadata?.indices_searched && (
+              <div className="stats-row">
+                <div className="stats-item">
+                  <strong>搜尋範圍:</strong>
+                  <span className="stats-value">
+                    {searchResults.metadata.indices_searched}
+                  </span>
+                </div>
+              </div>
+            )} */}
           </div>
         )}
 
@@ -342,35 +409,31 @@ export default function App() {
                 <li>嘗試更簡短或更具體的關鍵字</li>
                 <li>使用不同的搜尋模式（關鍵字/語義/混合）</li>
                 <li>檢查是否有相關的產品代碼或文件編號</li>
-                <li>嘗試使用上方的快速搜尋建議</li>
+                <li>嘗試移除文件類型過濾</li>
               </ul>
+              
+              {searchHistory.length > 0 && (
+                <div className="search-suggestions">
+                  <p><strong>或試試最近的搜尋：</strong></p>
+                  <div className="suggestion-list">
+                    {searchHistory.slice(0, 5).map((item, idx) => (
+                      <button
+                        key={idx}
+                        className="suggestion-item"
+                        onClick={() => {
+                          setSearchQuery(item)
+                          handleSearch(item)
+                        }}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
-
-        {/* 系統狀態面板（開發模式） */}
-        {/* {process.env.NODE_ENV === 'development' && (
-          <div className="debug-panel">
-            <details>
-              <summary>系統調試資訊</summary>
-              <div className="debug-content">
-                <h4>系統狀態</h4>
-                <pre>{JSON.stringify(systemStatus, null, 2)}</pre>
-                
-                <h4>統計資訊</h4>
-                <pre>{JSON.stringify(searchStats, null, 2)}</pre>
-                
-                <h4>搜尋配置</h4>
-                <pre>{JSON.stringify({
-                  searchMode,
-                  topK,
-                  useGPT,
-                  apiUrl: API_BASE_URL
-                }, null, 2)}</pre>
-              </div>
-            </details>
-          </div>
-        )} */}
       </main>
     </div>
   )
