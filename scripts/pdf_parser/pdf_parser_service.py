@@ -43,6 +43,7 @@ class DatabaseManager:
     def __init__(self):
         self.connection = None
         self.connect()
+        self.ensure_tables_exist()
 
     def connect(self):
         """建立資料庫連線"""
@@ -70,6 +71,63 @@ class DatabaseManager:
         except:
             self.connect()
         return self.connection
+    
+    def ensure_tables_exist(self):
+        """確保必要的表存在，如果不存在則自動創建"""
+        create_structured_documents_sql = """
+        CREATE TABLE IF NOT EXISTS structured_documents (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            original_doc_id VARCHAR(50) NOT NULL UNIQUE COMMENT '關聯 technical_documents.doc_id',
+            doc_type VARCHAR(50) COMMENT '文檔類型',
+            doc_number VARCHAR(100) COMMENT '文檔編號',
+            doc_date DATE COMMENT '文檔日期',
+            
+            -- 檔案資訊
+            file_name VARCHAR(255),
+            file_url TEXT,
+            file_path TEXT,
+            file_size BIGINT,
+            file_hash VARCHAR(64),
+            
+            -- 產品資訊
+            product_category VARCHAR(50),
+            product_codes JSON,
+            product_names JSON,
+            related_doc_numbers JSON,
+            
+            -- 人員與部門
+            applicant VARCHAR(100),
+            department VARCHAR(100),
+            responsible_units JSON,
+            
+            -- 摘要與關鍵字
+            summary TEXT,
+            keywords JSON,
+            status VARCHAR(50),
+            priority VARCHAR(20),
+            
+            -- 時間戳記
+            parsed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            
+            -- 索引
+            INDEX idx_doc_number (doc_number),
+            INDEX idx_doc_type (doc_type),
+            INDEX idx_last_modified (last_modified),
+            FOREIGN KEY (original_doc_id) REFERENCES technical_documents(doc_id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        COMMENT='結構化文件摘要表'
+        """
+        
+        try:
+            conn = self.get_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(create_structured_documents_sql)
+                conn.commit()
+                logger.info("✅ 已確保 structured_documents 表存在")
+        except Exception as e:
+            logger.warning(f"⚠️ 創建 structured_documents 表失敗 (可能已存在): {e}")
+
     
     def get_unprocessed_documents(self, limit: int = 10) -> List[Dict]:
         """取得未解析的文件"""

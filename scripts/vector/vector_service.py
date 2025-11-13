@@ -35,6 +35,10 @@ ES_WAIT_TIMEOUT = int(os.environ.get("ES_WAIT_TIMEOUT", "180"))
 REQUESTS_TIMEOUT = int(os.environ.get("REQUESTS_TIMEOUT", "30"))
 MAX_RETRIES = int(os.environ.get("MAX_RETRIES", "5"))
 
+# 自動停止配置
+AUTO_STOP_ENABLED = os.environ.get("AUTO_STOP_ENABLED", "false").lower() in ("true", "1", "yes")
+AUTO_STOP_EMPTY_ROUNDS = int(os.environ.get("AUTO_STOP_EMPTY_ROUNDS", "3"))
+
 # ========== 日誌配置 ==========
 logging.basicConfig(
     level=logging.INFO,
@@ -619,6 +623,9 @@ def main() -> None:
     log(f"📊 模型：{EMBEDDING_MODEL}")
     log(f"🔍 索引模式：{INDEX_PATTERN}")
     log(f"📦 批次大小：{BATCH_SIZE}")
+    log(f"🤖 自動停止：{'啟用' if AUTO_STOP_ENABLED else '停用'}")
+    if AUTO_STOP_ENABLED:
+        log(f"   連續空輪上限：{AUTO_STOP_EMPTY_ROUNDS} 次")
     log("=" * 60)
     
     try:
@@ -631,15 +638,36 @@ def main() -> None:
     updater = ElasticsearchVectorUpdater(vg)
     updater.update_index_mapping(INDEX_PATTERN)
     
+    # 自動停止計數器
+    empty_rounds = 0
+    total_processed = 0
+    
     while not _SHOULD_STOP:
         try:
             docs = updater.find_documents_without_vectors(INDEX_PATTERN, size=BATCH_SIZE)
             if docs:
-                updater.update_document_vectors(docs)
+                # 找到文檔，重置計數器
+                empty_rounds = 0
+                ok_count, _ = updater.update_document_vectors(docs)
+                total_processed += ok_count
             else:
-                log("😴 所有文檔都已有向量")
+                # 沒有找到文檔
+                empty_rounds += 1
+                log(f"😴 所有文檔都已有向量 (空輪 {empty_rounds}/{AUTO_STOP_EMPTY_ROUNDS if AUTO_STOP_ENABLED else '∞'})")
+                
+                # 檢查是否需要自動停止
+                if AUTO_STOP_ENABLED and empty_rounds >= AUTO_STOP_EMPTY_ROUNDS:
+                    log("=" * 60)
+                    log(f"✅ 完成！所有文檔都已有向量")
+                    log(f"📊 本次運行共處理 {total_processed} 個文檔")
+                    log(f"🛑 已連續 {empty_rounds} 輪無新文檔，自動停止服務")
+                    log("=" * 60)
+                    break
+                    
         except Exception as e:
             log(f"❌ 主循環錯誤：{e}")
+            # 錯誤時不計入空輪次
+        
         time.sleep(SLEEP_SEC)
     
     log("👋 向量服務結束")

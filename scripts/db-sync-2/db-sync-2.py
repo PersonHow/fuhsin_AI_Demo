@@ -30,6 +30,10 @@ PAGE_SIZE = int(os.environ.get('DB_PAGE_SIZE', '5000'))
 PARALLEL_THREADS = int(os.environ.get('PARALLEL_THREADS', '4'))
 SYNC_INTERVAL = int(os.environ.get('DB_SYNC_INTERVAL', '60'))
 
+# 自動停止配置
+AUTO_STOP_ENABLED = os.environ.get("AUTO_STOP_ENABLED", "false").lower() in ("true", "1", "yes")
+AUTO_STOP_EMPTY_ROUNDS = int(os.environ.get("AUTO_STOP_EMPTY_ROUNDS", "3"))
+
 # ========== 日誌配置 ==========
 logging.basicConfig(
     level=logging.INFO,
@@ -297,6 +301,7 @@ class MySQLSyncer:
         self.es_client = es_client
         self.connection = None
         self.last_sync_times = {}
+        self.last_doc_counts = {}  # 追蹤每個索引的文檔數
         
     def connect(self):
         """連接到 MySQL"""
@@ -316,11 +321,11 @@ class MySQLSyncer:
             logger.error(f"❌ MySQL 連接失敗: {e}")
             return False
     
-    def sync_table(self, table_name: str, index_name: str, doc_type: str = 'general'):
-        """同步單個資料表"""
+    def sync_table(self, table_name: str, index_name: str, doc_type: str = 'general') -> bool:
+        """同步單個資料表，返回是否有新數據"""
         if not self.connection or not self.connection.open:
             if not self.connect():
-                return
+                return False
         
         try:
             # 建立或更新索引
@@ -333,7 +338,7 @@ class MySQLSyncer:
                 
             if total == 0:
                 logger.info(f"資料表 {table_name} 沒有資料")
-                return
+                return False
             
             logger.info(f"📊 開始同步 {table_name}: 共 {total} 筆資料")
             
@@ -367,8 +372,21 @@ class MySQLSyncer:
             final_count = self.es_client.get_doc_count(index_name)
             logger.info(f"✅ {table_name} 同步完成: 索引 {indexed_total} 筆，總計 {final_count} 筆文檔")
             
+            # 檢查是否有新數據
+            had_new_data = False
+            if index_name in self.last_doc_counts:
+                had_new_data = final_count > self.last_doc_counts[index_name]
+            else:
+                had_new_data = final_count > 0
+            
+            # 更新文檔計數
+            self.last_doc_counts[index_name] = final_count
+            
+            return had_new_data
+            
         except Exception as e:
             logger.error(f"❌ 同步 {table_name} 時發生錯誤: {e}")
+            return False
     
     def _sync_batch(self, table_name: str, index_name: str, offset: int, limit: int) -> int:
         """同步一批資料"""
@@ -438,8 +456,8 @@ class MySQLSyncer:
             if conn:
                 conn.close()
     
-    def sync_all(self):
-        """同步所有配置的資料表"""
+    def sync_all(self) -> bool:
+        """同步所有配置的資料表，返回是否有任何新數據"""
         # 方案A：每種表單同步到不同索引
         tables = [
             # PDF 文件相關表
@@ -450,10 +468,15 @@ class MySQLSyncer:
             ('structured_documents', 'erp-structure', 'document'),
         ]
         
+        had_any_new_data = False
         for table_name, index_name, doc_type in tables:
             if should_stop:
                 break
-            self.sync_table(table_name, index_name, doc_type)
+            had_new_data = self.sync_table(table_name, index_name, doc_type)
+            if had_new_data:
+                had_any_new_data = True
+        
+        return had_any_new_data
     
     def close(self):
         """關閉連接"""
@@ -483,6 +506,10 @@ def main():
     logger.info(f"批次大小: {BATCH_SIZE}")
     logger.info(f"頁面大小: {PAGE_SIZE}")
     logger.info(f"並行執行緒: {PARALLEL_THREADS}")
+    logger.info(f"同步間隔: {SYNC_INTERVAL} 秒")
+    logger.info(f"🤖 自動停止：{'啟用' if AUTO_STOP_ENABLED else '停用'}")
+    if AUTO_STOP_ENABLED:
+        logger.info(f"   連續空輪上限：{AUTO_STOP_EMPTY_ROUNDS} 次")
     logger.info("同步資料表:")
     logger.info("  - ecn_notices → erp-ecn-notices")
     logger.info("  - ecn_applications → erp-ecn-applications")
@@ -510,10 +537,27 @@ def main():
     try:
         # 首次全量同步
         logger.info("🚀 開始首次全量同步...")
-        syncer.sync_all()
+        had_new_data = syncer.sync_all()
+        
+        # 自動停止計數器
+        empty_rounds = 0 if had_new_data else 1
+        total_syncs = 1
         
         # 定期增量同步
         while not should_stop:
+            # 顯示當前狀態
+            if not had_new_data:
+                logger.info(f"😴 所有資料表都已同步完成 (空輪 {empty_rounds}/{AUTO_STOP_EMPTY_ROUNDS if AUTO_STOP_ENABLED else '∞'})")
+                
+                # 檢查是否需要自動停止
+                if AUTO_STOP_ENABLED and empty_rounds >= AUTO_STOP_EMPTY_ROUNDS:
+                    logger.info("=" * 60)
+                    logger.info(f"✅ 完成！所有資料表都已同步")
+                    logger.info(f"📊 共執行 {total_syncs} 次同步")
+                    logger.info(f"🛑 已連續 {empty_rounds} 輪無新資料，自動停止服務")
+                    logger.info("=" * 60)
+                    break
+            
             logger.info(f"⏰ 等待 {SYNC_INTERVAL} 秒後進行下次同步...")
             
             # 可中斷的等待
@@ -524,7 +568,14 @@ def main():
             
             if not should_stop:
                 logger.info("🔄 開始增量同步...")
-                syncer.sync_all()
+                had_new_data = syncer.sync_all()
+                total_syncs += 1
+                
+                # 更新空輪計數
+                if had_new_data:
+                    empty_rounds = 0  # 重置計數器
+                else:
+                    empty_rounds += 1
                 
     except Exception as e:
         logger.error(f"❌ 主程式發生錯誤: {e}")
